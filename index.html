@@ -9,19 +9,24 @@
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+
   <style>
     :root {
       --bg: #f4f6fb;
       --surface: #ffffff;
       --border: #e2e8f0;
-      --primary: #3b7ef8;
+      --primary: #176983;
       --primary-light: #eef3ff;
-      --primary-dark: #2563eb;
+      --primary-dark: #176983;
       --text: #1e293b;
       --muted: #64748b;
       --header-bg: #f8fafc;
-      --row-even: #f8fafc;
-      --row-odd: #ffffff;
       --shadow-lg: 0 4px 24px rgba(59, 126, 248, 0.10);
       --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
@@ -74,7 +79,7 @@
     }
 
     .brand-title {
-      font-size: 18px;
+      font-size: 30px;
       font-weight: 700;
       color: var(--primary);
       letter-spacing: -0.3px;
@@ -199,7 +204,7 @@
     /* GANTT */
     .gantt-wrap {
       background: var(--surface);
-      border-radius: 16px;
+      /* border-radius: 16px; */
       box-shadow: var(--shadow-lg);
       border: 1px solid var(--border);
       overflow: hidden;
@@ -283,24 +288,15 @@
 
     /* data rows */
     .gantt-row td {
-      border-bottom: 1px solid var(--border);
-      border-right: 1px solid #edf0f5;
+      background: #ffffff;
       height: 38px;
-    }
-
-    .gantt-row:nth-child(odd) td {
-      background: var(--row-odd);
-    }
-
-    .gantt-row:nth-child(even) td {
-      background: var(--row-even);
+      border-right: 4px dashed #d3d7dc;
+      border-bottom: 4px dashed #d3d7dc;
     }
 
     .gantt-row:last-child td {
       border-bottom: none;
     }
-
-
 
     .month-end {
       border-right: 2px solid var(--border) !important;
@@ -344,6 +340,149 @@
       cursor: pointer;
       opacity: .65;
     }
+
+
+    #periodStart,
+    #periodEnd {
+      height: 38px;
+      min-width: 220px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 0 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      cursor: pointer;
+    }
+
+    #periodStart:focus,
+    #periodEnd:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(23, 105, 131, 0.12);
+    }
+
+    /* GANTT HEADER STYLE: Year / Month / Week like sample */
+    .gantt-scroll {
+      overflow-x: auto;
+    }
+
+    .gantt-stage {
+      position: relative;
+      display: inline-block;
+      min-width: 100%;
+    }
+
+    .gantt-year-bar {
+      position: relative;
+      height: 48px;
+      background: #176983;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: .2px;
+      border-bottom: 1px solid #9aa3ab;
+    }
+
+    .today-marker {
+      position: absolute;
+      top: 0;
+      bottom: auto;
+      width: 0;
+      height: 1250px;
+      border-left: 3px dashed #ff1f1f;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    .today-marker-label {
+      position: absolute;
+      top: 14px;
+      left: 0;
+      transform: translateX(-50%);
+      color: #ff1f1f;
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .gantt-table {
+      border-collapse: collapse;
+      min-width: 100%;
+      table-layout: fixed;
+    }
+
+    .gantt-month-row th {
+      background: #d9dee3;
+      color: #111827;
+      font-size: 20px;
+      font-weight: 900;
+      text-align: center;
+      height: 38px;
+      padding: 0;
+      border-right: 2px solid #8b939b;
+      border-bottom: 1px solid #c5ccd3;
+      white-space: nowrap;
+      letter-spacing: .2px;
+    }
+
+    .gantt-week-row th {
+      background: #f2f4f6;
+      color: #2b2f33;
+      font-size: 12px;
+      font-weight: 800;
+      height: 30px;
+      min-width: 58px;
+      padding: 0;
+      border-right: 1px dashed #d3d7dc;
+      border-bottom: 1px solid #d3d7dc;
+    }
+
+    .week-cell-inner {
+      padding: 0;
+      gap: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .week-label {
+      display: none;
+    }
+
+    .week-dates {
+      font-size: 12px;
+      color: #2b2f33;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 800;
+    }
+
+    .gantt-row td {
+      height: 38px;
+      border-bottom: 2px dashed var(--border);
+      border-right: 2px dashed #d3d7dc;
+    }
+
+    .month-end {
+      border-right: 2px solid #8b939b !important;
+    }
+
+    body.exporting .task-color-picker,
+    body.exporting .task-delete-btn,
+    body.exporting .resize-handle {
+      display: none !important;
+    }
+
+    body.exporting .task-box {
+      cursor: default !important;
+    }
   </style>
 </head>
 
@@ -358,21 +497,23 @@
         <div class="brand-title">Gantt Chart Generator</div>
       </div>
       <div class="controls-row">
-        <div class="ctrl-group">
+        <!-- <div class="ctrl-group">
           <label>Project</label>
           <input type="text" id="projectName" value="My Project">
-        </div>
+        </div> -->
 
         <div class="ctrl-group">
           <label>From</label>
-          <input type="month" id="periodStart">
+          <input type="text" id="periodStart">
+          <!-- <input type="month" id="periodStart"> -->
         </div>
 
         <div class="divider">→</div>
 
         <div class="ctrl-group">
           <label>To</label>
-          <input type="month" id="periodEnd">
+          <input type="text" id="periodEnd">
+          <!-- <input type="month" id="periodEnd"> -->
         </div>
 
         <div class="ctrl-group">
@@ -383,12 +524,7 @@
           </div>
         </div>
 
-        <button class="btn-generate" onclick="generate()">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M2 7h10M7 2v10" stroke="#fff" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          Generate
-        </button>
+        <button class="btn-generate btn-export" onclick="exportGanttPNG()">Export</button>
       </div>
     </div>
 
@@ -396,7 +532,7 @@
     <div class="gantt-wrap" id="ganttWrap">
       <div class="placeholder-msg">
         <strong>📊</strong>
-        เลือก Period แล้วกด Generate
+        เลือก Period เพื่อสร้าง Gantt Chart อัตโนมัติ
       </div>
     </div>
 
@@ -405,25 +541,46 @@
   <script>
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     let includeWeekend = false;
+    let currentWeeks = [];
 
     function setDefaultPeriods() {
-      // ใช้ library dayjs ในการจัดการวันที่เพื่อความสะดวกในการคำนวณและฟอร์แมตวันที่
       const now = dayjs();
 
-      const start = now.format('YYYY-MM');
-      const end = now.add(1, 'month').format('YYYY-MM');
+      document.getElementById('periodStart').value = now.format('YYYY-MM');
+      document.getElementById('periodEnd').value = now.format('YYYY-MM');
+    }
 
-      document.getElementById('periodStart').value = start;
-      document.getElementById('periodEnd').value = end;
+    function periodRange(changedField) {
+      const periodStart = document.getElementById('periodStart');
+      const periodEnd = document.getElementById('periodEnd');
+
+      if (!periodStart.value || !periodEnd.value) return;
+
+      const startDate = dayjs(`${periodStart.value}-01`);
+      const endDate = dayjs(`${periodEnd.value}-01`);
+
+      // ถ้าเลือก From มากกว่า To ให้ To เด้งมาเป็นเดือนเดียวกับ From
+      if (changedField === 'start' && startDate.isAfter(endDate, 'month')) {
+        periodEnd.value = periodStart.value;
+
+        if (window.endMonthPicker) {
+          window.endMonthPicker.setDate(periodStart.value, false, 'Y-m');
+        }
+      }
+
+      // ถ้าเลือก To น้อยกว่า From ให้ From เด้งมาเป็นเดือนเดียวกับ To
+      if (changedField === 'end' && endDate.isBefore(startDate, 'month')) {
+        periodStart.value = periodEnd.value;
+
+        if (window.startMonthPicker) {
+          window.startMonthPicker.setDate(periodEnd.value, false, 'Y-m');
+        }
+      }
     }
 
     function getMonthPeriodValue(id) {
       const value = document.getElementById(id).value;
-
-      if (!value) {
-        alert('กรุณาเลือกเดือนและปี');
-        return null;
-      }
+      if (!value) return null;
 
       const [year, month] = value.split('-').map(Number);
 
@@ -487,7 +644,9 @@
             month: wM,
             year: wY,
             monDate: weekStart.date(),
-            endDate: weekEnd.date()
+            endDate: weekEnd.date(),
+            start: weekStart,
+            end: weekEnd
           });
         }
 
@@ -497,43 +656,21 @@
 
       // นับว่าแต่ละเดือนมีกี่ week 
       for (let i = 0; i < weeks.length; i++) {
-         const prev = weeks[i - 1]; 
-         
-         if (!prev || prev.month !== weeks[i].month || prev.year !== weeks[i].year) { 
-          weeks[i].wNum = 1; 
-        } else { 
-          weeks[i].wNum = prev.wNum + 1; 
-        } 
-      } 
-      
-      // หา Week สุดท้ายของเดือน 
-      // ถ้าไม่มี Week ถัดไป หรือ Week ถัดไปอยู่คนละเดือน/ปี คือ Week นี้คือ Week สุดท้ายของเดือน
-      for (let i = 0; i < weeks.length; i++) { 
-        const next = weeks[i + 1]; 
-        weeks[i].isMonthEnd = !next || next.month !== weeks[i].month || next.year !== weeks[i].year; 
+        const prev = weeks[i - 1];
+
+        if (!prev || prev.month !== weeks[i].month || prev.year !== weeks[i].year) {
+          weeks[i].wNum = 1;
+        } else {
+          weeks[i].wNum = prev.wNum + 1;
+        }
       }
 
-      // สำหรับนับ week ของแต่ละเดือน
-      // const counter = {};
-
-      // weeks.forEach(w => {
-      //   // example: k = "2026-0" --เดือนใน dayjs เป็น index 0-11
-      //   const k = `${w.year}-${w.month}`;
-      //   // ถ้าเจอเดือนนี้จะนับเพิ่มไปเรื่อยๆ
-      //   counter[k] = (counter[k] || 0) + 1;
-      //   w.wNum = counter[k];
-      //   w.isMonthEnd = false;
-      // });
-
-      // const lastIdx = {};
-
-      // weeks.forEach((w, i) => {
-      //   lastIdx[`${w.year}-${w.month}`] = i;
-      // });
-
-      // Object.values(lastIdx).forEach(i => {
-      //   weeks[i].isMonthEnd = true;
-      // });
+      // หา Week สุดท้ายของเดือน 
+      // ถ้าไม่มี Week ถัดไป หรือ Week ถัดไปอยู่คนละเดือน/ปี คือ Week นี้คือ Week สุดท้ายของเดือน
+      for (let i = 0; i < weeks.length; i++) {
+        const next = weeks[i + 1];
+        weeks[i].isMonthEnd = !next || next.month !== weeks[i].month || next.year !== weeks[i].year;
+      }
 
       return weeks;
     }
@@ -555,6 +692,7 @@
       }
 
       const weeks = getWeeks(sY, sM, eY, eM, includeWeekend);
+      currentWeeks = weeks;
 
       if (!weeks.length) {
         alert('ไม่พบสัปดาห์ในช่วงที่เลือก');
@@ -563,7 +701,7 @@
 
       const multiYear = sY !== eY;
       const yearLabel = multiYear ? `${sY} – ${eY}` : `${sY}`;
-      const projName = document.getElementById('projectName').value || 'Project';
+      // const projName = document.getElementById('projectName').value || 'Project';
 
       const groups = [];
       let cur = null;
@@ -576,16 +714,20 @@
         cur.count++;
       });
 
-      const ROWS = 20;
+      const ROWS = 30;
 
       let html = `
-        <div class="gantt-year-header">
-          ${yearLabel} <span>• ${projName}</span>
-        </div>
         <div class="gantt-scroll">
-          <table class="gantt-table">
-            <thead>
-              <tr class="gantt-month-row">
+          <div class="gantt-stage" id="ganttStage">
+            <div class="gantt-year-bar">
+              ${yearLabel}
+              <div class="today-marker" id="todayMarker">
+              <div class="today-marker-label">We are Here</div>
+            </div>
+            </div>
+            <table class="gantt-table">
+              <thead>
+                <tr class="gantt-month-row">
       `;
 
       groups.forEach((g, idx) => {
@@ -619,13 +761,166 @@
         html += `</tr>`;
       }
 
-      html += `</tbody></table></div>`;
+      html += `</tbody></table></div></div>`;
 
       document.getElementById('ganttWrap').innerHTML = html;
+      positionTodayMarker();
+    }
+
+    function positionTodayMarker() {
+      const marker = document.getElementById('todayMarker');
+      const stage = document.getElementById('ganttStage');
+      const weekCells = [...document.querySelectorAll('.gantt-week-row th')];
+
+      if (!marker || !stage || !weekCells.length || !currentWeeks.length) return;
+
+      const today = dayjs();
+      const firstWeek = currentWeeks[0];
+      const lastWeek = currentWeeks[currentWeeks.length - 1];
+
+      if (today.isBefore(firstWeek.start, 'day') || today.isAfter(lastWeek.end, 'day')) {
+        marker.style.display = 'none';
+        return;
+      }
+
+      const firstCellRect = weekCells[0].getBoundingClientRect();
+      const stageRect = stage.getBoundingClientRect();
+      const weekWidth = firstCellRect.width;
+      const daysPerWeek = includeWeekend ? 7 : 5;
+      const dayWidth = weekWidth / daysPerWeek;
+
+      for (let i = 0; i < currentWeeks.length; i++) {
+        const week = currentWeeks[i];
+
+        const isInThisWeek =
+          today.isSame(week.start, 'day') ||
+          today.isSame(week.end, 'day') ||
+          (today.isAfter(week.start, 'day') && today.isBefore(week.end, 'day'));
+
+        if (isInThisWeek) {
+          let offsetDay;
+
+          if (includeWeekend) {
+            offsetDay = today.diff(week.start, 'day');
+          } else {
+            // Mon=1 -> 0, Tue=2 -> 1, ..., Fri=5 -> 4
+            // Weekend จะถูกบีบให้อยู่ในกรอบ Mon-Fri
+            offsetDay = Math.max(0, Math.min(4, today.day() - 1));
+          }
+
+          const left = (i * weekWidth) + (offsetDay * dayWidth);
+          marker.style.display = 'block';
+          marker.style.left = `${left}px`;
+          return;
+        }
+      }
+
+      marker.style.display = 'none';
+    }
+
+    function initMonthPickers() {
+      const monthPickerOptions = {
+        plugins: [
+          new monthSelectPlugin({
+            shorthand: true,
+            dateFormat: 'Y-m',
+            altFormat: 'F Y'
+          })
+        ],
+        allowInput: false
+      };
+
+      window.startMonthPicker = flatpickr('#periodStart', {
+        ...monthPickerOptions,
+        onChange(selectedDates, dateStr) {
+          periodRange('start');
+          generate();
+        }
+      });
+
+      window.endMonthPicker = flatpickr('#periodEnd', {
+        ...monthPickerOptions,
+        onChange(selectedDates, dateStr) {
+          periodRange('end');
+          generate();
+        }
+      });
     }
 
     setDefaultPeriods();
+    initMonthPickers();
     generate();
+
+    async function exportGanttPNG() {
+      // html2canvas(document.getElementById("ganttWrap"), { scrollY: -window.scrollY, scrollX: -window.scrollX }).then(canvas => {
+      //   var a = document.createElement("a");
+      //   a.href = canvas.toDataURL();
+      //   a.download = "capture.png";
+      //   a.click();
+      // });
+
+      const canvas = await html2canvas(ganttWrap, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        width: ganttStage.scrollWidth,
+        height: ganttWrap.scrollHeight,
+        windowWidth: ganttStage.scrollWidth + 60, 
+        windowHeight: ganttWrap.scrollHeight,
+        scrollX: 0,
+        scrollY: 0
+      }).then(canvas => {
+        var a = document.createElement("a");
+        a.href = canvas.toDataURL();
+        a.download = "capture.png";
+        a.click();
+      });
+
+
+
+      // const ganttWrap = document.getElementById('ganttWrap');
+      // const ganttScroll = document.querySelector('.gantt-scroll');
+      // const ganttStage = document.getElementById('ganttStage') || document.querySelector('.gantt-table');
+
+      // document.body.classList.add('exporting');
+
+      // const oldWrapOverflow = ganttWrap.style.overflow;
+      // const oldScrollOverflow = ganttScroll.style.overflow;
+      // const oldScrollLeft = ganttScroll.scrollLeft;
+      // const oldStageWidth = ganttStage.style.width;
+
+      // ganttScroll.scrollLeft = 0;
+      // ganttWrap.style.overflow = 'visible';
+      // ganttScroll.style.overflow = 'visible';
+      // ganttStage.style.width = `${ganttStage.scrollWidth}px`;
+
+      // await new Promise(resolve => requestAnimationFrame(resolve));
+
+      // const canvas = await html2canvas(ganttWrap, {
+      //   scale: 2,
+      //   backgroundColor: '#ffffff',
+      //   useCORS: true,
+      //   width: ganttStage.scrollWidth,
+      //   height: ganttWrap.scrollHeight,
+      //   windowWidth: ganttStage.scrollWidth,
+      //   windowHeight: ganttWrap.scrollHeight,
+      //   scrollX: 0,
+      //   scrollY: 0
+      // });
+
+      // ganttWrap.style.overflow = oldWrapOverflow;
+      // ganttScroll.style.overflow = oldScrollOverflow;
+      // ganttScroll.scrollLeft = oldScrollLeft;
+      // ganttStage.style.width = oldStageWidth;
+
+      // document.body.classList.remove('exporting');
+
+      // const link = document.createElement('a');
+      // link.download = `Gantt_${new Date().toISOString().slice(0, 10)}.png`;
+      // link.href = canvas.toDataURL('image/png');
+      // link.click();
+    }
+
   </script>
 </body>
 
