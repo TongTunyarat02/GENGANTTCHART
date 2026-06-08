@@ -1,353 +1,632 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gantt Chart Generator</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #f4f6fb;
-    --surface: #ffffff;
-    --border: #e2e8f0;
-    --primary: #3b7ef8;
-    --primary-light: #eef3ff;
-    --primary-dark: #2563eb;
-    --text: #1e293b;
-    --muted: #64748b;
-    --header-bg: #f8fafc;
-    --row-even: #f8fafc;
-    --row-odd: #ffffff;
-    --shadow-lg: 0 4px 24px rgba(59,126,248,0.10);
-    --shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  .app-wrap { max-width: 100%; padding: 28px 24px 64px; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gantt Chart Generator</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --primary: #3b7ef8;
+      --primary-light: #eef3ff;
+      --primary-dark: #2563eb;
+      --text: #1e293b;
+      --muted: #64748b;
+      --header-bg: #f8fafc;
+      --row-even: #f8fafc;
+      --row-odd: #ffffff;
+      --shadow-lg: 0 4px 24px rgba(59, 126, 248, 0.10);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
 
-  /* CONTROL */
-  .control-card {
-    background: var(--surface);
-    border-radius: 16px;
-    box-shadow: var(--shadow-lg);
-    padding: 22px 28px;
-    margin-bottom: 24px;
-    border: 1px solid var(--border);
-  }
-  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-  .brand-icon {
-    width: 34px; height: 34px; background: var(--primary); border-radius: 9px;
-    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px;
-  }
-  .brand-title { font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: -0.3px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  .controls-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
-  .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
-  .ctrl-group label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
 
-  .ctrl-group input[type="text"] {
-    height: 38px; border: 1.5px solid var(--border); border-radius: 9px;
-    padding: 0 12px; font-family: 'DM Sans', sans-serif; font-size: 14px;
-    color: var(--text); background: var(--bg); outline: none; min-width: 155px;
-    transition: border-color .15s;
-  }
-  .ctrl-group input[type="text"]:focus { border-color: var(--primary); }
+    .app-wrap {
+      max-width: 100%;
+      padding: 28px 24px 64px;
+    }
 
-  .ctrl-group select {
-    height: 38px; border: 1.5px solid var(--border); border-radius: 9px;
-    padding: 0 28px 0 12px; font-family: 'DM Sans', sans-serif; font-size: 14px;
-    color: var(--text); background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%2364748b'/%3E%3C/svg%3E") right 10px center no-repeat;
-    appearance: none; outline: none; cursor: pointer; min-width: 82px; transition: border-color .15s;
-  }
-  .ctrl-group select:focus { border-color: var(--primary); }
+    /* CONTROL */
+    .control-card {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      padding: 22px 28px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
 
-  .divider { font-size: 14px; color: var(--muted); padding-bottom: 6px; font-weight: 500; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
 
-  .weekend-toggle {
-    display: flex; border: 1.5px solid var(--border); border-radius: 9px; overflow: hidden; background: var(--bg);
-  }
-  .wk-btn {
-    padding: 0 14px; height: 38px; font-family: 'DM Sans', sans-serif; font-size: 13px;
-    font-weight: 500; background: none; border: none; cursor: pointer; color: var(--muted);
-    transition: background .15s, color .15s; white-space: nowrap;
-  }
-  .wk-btn.active { background: var(--primary); color: #fff; }
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--primary);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 17px;
+    }
 
-  .btn-generate {
-    height: 38px; padding: 0 22px; background: var(--primary); color: #fff; border: none;
-    border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; gap: 7px;
-    box-shadow: 0 2px 8px rgba(59,126,248,0.28); transition: background .15s, transform .1s;
-  }
-  .btn-generate:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.3px;
+    }
 
-  /* GANTT */
-  .gantt-wrap {
-    background: var(--surface); border-radius: 16px;
-    box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: hidden;
-  }
-  .gantt-year-header {
-    padding: 14px 24px 10px; font-size: 26px; font-weight: 700; color: var(--primary);
-    font-family: 'DM Mono', monospace; letter-spacing: -1px;
-    border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 10px;
-  }
-  .gantt-year-header span { font-size: 14px; color: var(--muted); font-weight: 400; font-family: 'DM Sans', sans-serif; letter-spacing: 0; }
-  .gantt-scroll { overflow-x: auto; }
-  .gantt-table { border-collapse: collapse; min-width: 100%; }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-end;
+    }
 
-  /* month row */
-  .gantt-month-row th {
-    background: var(--header-bg); font-size: 13px; font-weight: 700; color: var(--primary);
-    text-align: center; padding: 10px 0; border-right: 2px solid var(--border);
-    border-bottom: 1px solid var(--border); white-space: nowrap; letter-spacing: 0.4px;
-  }
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
 
-  /* week row */
-  .gantt-week-row th {
-    background: var(--surface); border-bottom: 2px solid var(--border);
-    min-width: 56px; padding: 0;
-  }
-  .week-cell-inner { display: flex; flex-direction: column; align-items: center; padding: 6px 4px 4px; gap: 2px; }
-  .week-label { font-size: 11px; font-weight: 700; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .week-dates { font-size: 10px; color: #94a3b8; font-family: 'DM Mono', monospace; }
+    .ctrl-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-  /* row number col */
+    .ctrl-group input[type="text"] {
+      height: 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      padding: 0 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      min-width: 155px;
+      transition: border-color .15s;
+    }
+
+    .ctrl-group input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+
+    .ctrl-group select {
+      height: 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      padding: 0 28px 0 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%2364748b'/%3E%3C/svg%3E") right 10px center no-repeat;
+      appearance: none;
+      outline: none;
+      cursor: pointer;
+      min-width: 82px;
+      transition: border-color .15s;
+    }
+
+    .ctrl-group select:focus {
+      border-color: var(--primary);
+    }
+
+    .divider {
+      font-size: 14px;
+      color: var(--muted);
+      padding-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .weekend-toggle {
+      display: flex;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .wk-btn {
+      padding: 0 14px;
+      height: 38px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+    }
+
+    .wk-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-generate {
+      height: 38px;
+      padding: 0 22px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 2px 8px rgba(59, 126, 248, 0.28);
+      transition: background .15s, transform .1s;
+    }
+
+    .btn-generate:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    /* GANTT */
+    .gantt-wrap {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .gantt-year-header {
+      padding: 14px 24px 10px;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: -1px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .gantt-year-header span {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 400;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0;
+    }
+
+    .gantt-scroll {
+      overflow-x: auto;
+    }
+
+    .gantt-table {
+      border-collapse: collapse;
+      min-width: 100%;
+    }
+
+    /* month row */
+    .gantt-month-row th {
+      background: var(--header-bg);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      padding: 10px 0;
+      border-right: 2px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      letter-spacing: 0.4px;
+    }
+
+    /* week row */
+    .gantt-week-row th {
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      min-width: 56px;
+      padding: 0;
+    }
+
+    .week-cell-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 4px 4px;
+      gap: 2px;
+    }
+
+    .week-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .week-dates {
+      font-size: 10px;
+      color: #94a3b8;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* row number col */
 
 
-  /* data rows */
-  .gantt-row td {
-    border-bottom: 1px solid var(--border); border-right: 1px solid #edf0f5; height: 38px;
-  }
-  .gantt-row:nth-child(odd) td { background: var(--row-odd); }
-  .gantt-row:nth-child(even) td { background: var(--row-even); }
-  .gantt-row:last-child td { border-bottom: none; }
+    /* data rows */
+    .gantt-row td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid #edf0f5;
+      height: 38px;
+    }
+
+    .gantt-row:nth-child(odd) td {
+      background: var(--row-odd);
+    }
+
+    .gantt-row:nth-child(even) td {
+      background: var(--row-even);
+    }
+
+    .gantt-row:last-child td {
+      border-bottom: none;
+    }
 
 
 
-  .month-end { border-right: 2px solid var(--border) !important; }
+    .month-end {
+      border-right: 2px solid var(--border) !important;
+    }
 
-  .placeholder-msg {
-    text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; line-height: 1.6;
-  }
-  .placeholder-msg strong { display: block; font-size: 28px; margin-bottom: 6px; }
-</style>
+    .placeholder-msg {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .placeholder-msg strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .ctrl-group input[type="month"] {
+      height: 38px;
+      min-width: 220px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 0 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .ctrl-group input[type="month"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 126, 248, 0.12);
+    }
+
+    .ctrl-group input[type="month"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: .65;
+    }
+  </style>
 </head>
+
 <body>
-<div class="app-wrap">
+  <div class="app-wrap">
 
-  <!-- CONTROL -->
-  <div class="control-card">
-    <div class="brand">
-      <div class="brand-icon">📅</div>
-      <div class="brand-title">Gantt Chart Generator</div>
-    </div>
-    <div class="controls-row">
-      <div class="ctrl-group">
-        <label>ชื่อโปรเจกต์</label>
-        <input type="text" id="projectName" value="My Project">
+    <!-- CONTROL -->
+    <!-- Template ในการใส่ input ข้อมูลที่ต้องการนำไป generate gantt chart -->
+    <div class="control-card">
+      <div class="brand">
+        <div class="brand-icon">📅</div>
+        <div class="brand-title">Gantt Chart Generator</div>
       </div>
-
-      <div class="ctrl-group">
-        <label>เดือนเริ่ม</label>
-        <select id="startMonth"></select>
-      </div>
-      <div class="ctrl-group">
-        <label>ปีเริ่ม</label>
-        <select id="startYear"></select>
-      </div>
-
-      <div class="divider">→</div>
-
-      <div class="ctrl-group">
-        <label>เดือนสิ้นสุด</label>
-        <select id="endMonth"></select>
-      </div>
-      <div class="ctrl-group">
-        <label>ปีสิ้นสุด</label>
-        <select id="endYear"></select>
-      </div>
-
-      <div class="ctrl-group">
-        <label>รวม Weekend</label>
-        <div class="weekend-toggle">
-          <button class="wk-btn active" id="wkNo" onclick="setWeekend(false)">จ–ศ เท่านั้น</button>
-          <button class="wk-btn" id="wkYes" onclick="setWeekend(true)">รวม ส–อา</button>
+      <div class="controls-row">
+        <div class="ctrl-group">
+          <label>Project</label>
+          <input type="text" id="projectName" value="My Project">
         </div>
-      </div>
 
-      <button class="btn-generate" onclick="generate()">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M2 7h10M7 2v10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        Generate
-      </button>
+        <div class="ctrl-group">
+          <label>From</label>
+          <input type="month" id="periodStart">
+        </div>
+
+        <div class="divider">→</div>
+
+        <div class="ctrl-group">
+          <label>To</label>
+          <input type="month" id="periodEnd">
+        </div>
+
+        <div class="ctrl-group">
+          <label>Weekend</label>
+          <div class="weekend-toggle">
+            <button class="wk-btn active" id="wkNo" onclick="setWeekend(false)">จ–ศ เท่านั้น</button>
+            <button class="wk-btn" id="wkYes" onclick="setWeekend(true)">รวม ส–อา</button>
+          </div>
+        </div>
+
+        <button class="btn-generate" onclick="generate()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 7h10M7 2v10" stroke="#fff" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          Generate
+        </button>
+      </div>
     </div>
+
+    <!-- GANTT OUTPUT -->
+    <div class="gantt-wrap" id="ganttWrap">
+      <div class="placeholder-msg">
+        <strong>📊</strong>
+        เลือก Period แล้วกด Generate
+      </div>
+    </div>
+
   </div>
 
-  <!-- GANTT OUTPUT -->
-  <div class="gantt-wrap" id="ganttWrap">
-    <div class="placeholder-msg">
-      <strong>📊</strong>
-      เลือก Period แล้วกด Generate
-    </div>
-  </div>
+  <script>
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let includeWeekend = false;
 
-</div>
+    function setDefaultPeriods() {
+      // ใช้ library dayjs ในการจัดการวันที่เพื่อความสะดวกในการคำนวณและฟอร์แมตวันที่
+      const now = dayjs();
 
-<script>
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let includeWeekend = false;
+      const start = now.format('YYYY-MM');
+      const end = now.add(1, 'month').format('YYYY-MM');
 
-function initSelects() {
-  const cur = new Date().getFullYear();
-  const sM = document.getElementById('startMonth');
-  const eM = document.getElementById('endMonth');
-  const sY = document.getElementById('startYear');
-  const eY = document.getElementById('endYear');
-
-  MONTHS.forEach((m, i) => {
-    sM.innerHTML += `<option value="${i}" ${i===1?'selected':''}>${m}</option>`;
-    eM.innerHTML += `<option value="${i}" ${i===7?'selected':''}>${m}</option>`;
-  });
-  for (let y = cur - 3; y <= cur + 10; y++) {
-    sY.innerHTML += `<option value="${y}" ${y===cur?'selected':''}>${y}</option>`;
-    eY.innerHTML += `<option value="${y}" ${y===cur?'selected':''}>${y}</option>`;
-  }
-}
-
-function setWeekend(val) {
-  includeWeekend = val;
-  document.getElementById('wkYes').classList.toggle('active', val);
-  document.getElementById('wkNo').classList.toggle('active', !val);
-}
-
-function getWeeks(sY, sM, eY, eM, inclWe) {
-  const weeks = [];
-  const endLimit = new Date(eY, eM + 1, 0);
-
-  if (inclWe) {
-    // Weekend mode: week runs Sun–Sat
-    let d = new Date(sY, sM, 1);
-    const dow = d.getDay(); // 0=Sun
-    d.setDate(d.getDate() - dow); // back to Sunday
-
-    while (d <= endLimit) {
-      const sun = new Date(d);
-      const sat = new Date(d); sat.setDate(d.getDate() + 6);
-      const wed = new Date(d); wed.setDate(d.getDate() + 3);
-      const wM = wed.getMonth(); const wY = wed.getFullYear();
-      const inRange = (wY > sY || (wY === sY && wM >= sM)) && (wY < eY || (wY === eY && wM <= eM));
-      if (inRange) weeks.push({ month: wM, year: wY, monDate: sun.getDate(), endDate: sat.getDate() });
-      d.setDate(d.getDate() + 7);
+      document.getElementById('periodStart').value = start;
+      document.getElementById('periodEnd').value = end;
     }
-  } else {
-    // Weekday mode: week runs Mon–Fri
-    let d = new Date(sY, sM, 1);
-    const dow = d.getDay();
-    d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1)); // back to Monday
 
-    while (d <= endLimit) {
-      const mon = new Date(d);
-      const fri = new Date(d); fri.setDate(d.getDate() + 4);
-      const wed = new Date(d); wed.setDate(d.getDate() + 2);
-      const wM = wed.getMonth(); const wY = wed.getFullYear();
-      const inRange = (wY > sY || (wY === sY && wM >= sM)) && (wY < eY || (wY === eY && wM <= eM));
-      if (inRange) weeks.push({ month: wM, year: wY, monDate: mon.getDate(), endDate: fri.getDate() });
-      d.setDate(d.getDate() + 7);
+    function getMonthPeriodValue(id) {
+      const value = document.getElementById(id).value;
+
+      if (!value) {
+        alert('กรุณาเลือกเดือนและปี');
+        return null;
+      }
+
+      const [year, month] = value.split('-').map(Number);
+
+      return {
+        year,
+        month: month - 1 // JS / Day.js ใช้ month index 0-11
+      };
     }
-  }
 
-  // number weeks per month
-  const counter = {};
-  weeks.forEach(w => {
-    const k = `${w.year}-${w.month}`;
-    counter[k] = (counter[k] || 0) + 1;
-    w.wNum = counter[k];
-    w.isMonthEnd = false; // will set below
-  });
-
-  // mark last week of each month
-  const lastIdx = {};
-  weeks.forEach((w, i) => { lastIdx[`${w.year}-${w.month}`] = i; });
-  Object.values(lastIdx).forEach(i => weeks[i].isMonthEnd = true);
-
-  return weeks;
-}
-
-function generate() {
-  const sM = +document.getElementById('startMonth').value;
-  const sY = +document.getElementById('startYear').value;
-  const eM = +document.getElementById('endMonth').value;
-  const eY = +document.getElementById('endYear').value;
-
-  if (sY > eY || (sY === eY && sM > eM)) {
-    alert('เดือนเริ่มต้องไม่อยู่หลังเดือนสิ้นสุด'); return;
-  }
-
-  const weeks = getWeeks(sY, sM, eY, eM, includeWeekend);
-  if (!weeks.length) { alert('ไม่พบสัปดาห์ในช่วงที่เลือก'); return; }
-
-  const multiYear = sY !== eY;
-  const yearLabel = multiYear ? `${sY} – ${eY}` : `${sY}`;
-  const projName = document.getElementById('projectName').value || 'Project';
-
-  // build month groups
-  const groups = [];
-  let cur = null;
-  weeks.forEach((w, i) => {
-    if (!cur || cur.month !== w.month || cur.year !== w.year) {
-      cur = { month: w.month, year: w.year, count: 0 };
-      groups.push(cur);
+    function setWeekend(val) {
+      includeWeekend = val;
+      document.getElementById('wkYes').classList.toggle('active', val);
+      document.getElementById('wkNo').classList.toggle('active', !val);
+      generate();
     }
-    cur.count++;
-  });
 
-  // How many empty rows to show (enough to fill typical tasks)
-  const ROWS = 20;
+    function getWeeks(sY, sM, eY, eM, inclWe) {
+      const weeks = [];
 
-  let html = `
-    <div class="gantt-year-header">
-      ${yearLabel} <span>• ${projName}</span>
-    </div>
-    <div class="gantt-scroll">
-    <table class="gantt-table">
-      <thead>
-        <tr class="gantt-month-row">
-          `;
+      let d = dayjs(new Date(sY, sM, 1));
+      const end = dayjs(new Date(eY, eM + 1, 0));
 
-  groups.forEach(g => {
-    html += `<th colspan="${g.count}" ${g.count === groups[groups.length-1].count && g === groups[groups.length-1] ? 'style="border-right:none"':''}>
-      ${MONTHS[g.month]}${multiYear ? ` <span style="font-size:11px;background:var(--primary-light);color:var(--primary);border-radius:5px;padding:1px 6px;font-family:'DM Mono',monospace;font-weight:700">${g.year}</span>` : ''}
-    </th>`;
-  });
+      // inclWe = true  => Sunday - Saturday
+      // inclWe = false => Monday - Friday
+      if (inclWe) {
+        // นับวันแรกของสัปดาห์เป็นวันอาทิตย์-เสาร์
+        d = d.startOf('week');
+      } else {
+        // นับวันแรกของสัปดาห์เป็นวันจันทร์-ศุกร์
+        // ถ้าวันแรกเป็นวันพุธ day = 3 เข้าฟังก์ชั่นคือ 3-1 = 2 โดยใช้ subtract ย้อนกลับไป 2 วันจะได้เป็นวันจันทร์เริ่มสัปดาห์
+        d = d.subtract(
+          d.day() === 0 ? 6 : d.day() - 1,
+          'day'
+        );
+      }
 
-  html += `</tr><tr class="gantt-week-row">`;
-  weeks.forEach(w => {
-    html += `<th ${w.isMonthEnd ? 'class="month-end"' : ''}>
-      <div class="week-cell-inner">
-        <span class="week-label">W${w.wNum}</span>
-        <span class="week-dates">${w.monDate}–${w.endDate}</span>
-      </div>
-    </th>`;
-  });
+      // นับวันในแต่ละสัปดาห์ไปเรื่อยๆจนกว่าจะถึง endDate ของเดือนที่เลือก
+      while (d.isBefore(end) || d.isSame(end, 'day')) {
+        const weekStart = d;
 
-  html += `</tr></thead><tbody>`;
+        // หาวันสุดท้ายของสัปดาห์ เช็คจาก weeked ที่เลือกถ้านับรวมจะนับต่อไปอีก 6 วัน แต่ถ้าไม่รวมจะนับต่อไปอีก 4 วัน
+        const weekEnd = inclWe
+          ? d.add(6, 'day')
+          : d.add(4, 'day');
 
-  for (let r = 1; r <= ROWS; r++) {
-    html += `<tr class="gantt-row">
-`;
-    weeks.forEach(w => {
-      html += `<td ${w.isMonthEnd ? 'class="month-end"' : ''}></td>`;
-    });
-    html += `</tr>`;
-  }
+        // ใช้วันกลางสัปดาห์เพื่อดูว่า Week นี้เป็นของเดือนไหน
+        const middleDay = inclWe
+          ? d.add(3, 'day')
+          : d.add(2, 'day');
 
-  html += `</tbody></table></div>`;
-  document.getElementById('ganttWrap').innerHTML = html;
-}
+        const wM = middleDay.month();
+        const wY = middleDay.year();
 
-initSelects();
-generate();
-</script>
+        const inRange =
+          (wY > sY || (wY === sY && wM >= sM)) &&
+          (wY < eY || (wY === eY && wM <= eM));
+
+        // ถ้าวันพุธยังไม่ถึงเดือนที่เลือก จะไม่ถูกนับเป็นสัปดาห์ในช่วงนั้น
+        if (inRange) {
+          weeks.push({
+            month: wM,
+            year: wY,
+            monDate: weekStart.date(),
+            endDate: weekEnd.date()
+          });
+        }
+
+        // กำหนดให้ d เป็นวันแรกของสัปดาห์ถัดไปโดย +เพิ่มไปอีก 7 วัน
+        d = d.add(7, 'day');
+      }
+
+      // นับว่าแต่ละเดือนมีกี่ week 
+      for (let i = 0; i < weeks.length; i++) {
+         const prev = weeks[i - 1]; 
+         
+         if (!prev || prev.month !== weeks[i].month || prev.year !== weeks[i].year) { 
+          weeks[i].wNum = 1; 
+        } else { 
+          weeks[i].wNum = prev.wNum + 1; 
+        } 
+      } 
+      
+      // หา Week สุดท้ายของเดือน 
+      // ถ้าไม่มี Week ถัดไป หรือ Week ถัดไปอยู่คนละเดือน/ปี คือ Week นี้คือ Week สุดท้ายของเดือน
+      for (let i = 0; i < weeks.length; i++) { 
+        const next = weeks[i + 1]; 
+        weeks[i].isMonthEnd = !next || next.month !== weeks[i].month || next.year !== weeks[i].year; 
+      }
+
+      // สำหรับนับ week ของแต่ละเดือน
+      // const counter = {};
+
+      // weeks.forEach(w => {
+      //   // example: k = "2026-0" --เดือนใน dayjs เป็น index 0-11
+      //   const k = `${w.year}-${w.month}`;
+      //   // ถ้าเจอเดือนนี้จะนับเพิ่มไปเรื่อยๆ
+      //   counter[k] = (counter[k] || 0) + 1;
+      //   w.wNum = counter[k];
+      //   w.isMonthEnd = false;
+      // });
+
+      // const lastIdx = {};
+
+      // weeks.forEach((w, i) => {
+      //   lastIdx[`${w.year}-${w.month}`] = i;
+      // });
+
+      // Object.values(lastIdx).forEach(i => {
+      //   weeks[i].isMonthEnd = true;
+      // });
+
+      return weeks;
+    }
+
+    function generate() {
+      const start = getMonthPeriodValue('periodStart');
+      const end = getMonthPeriodValue('periodEnd');
+
+      if (!start || !end) return;
+
+      const sY = start.year;
+      const sM = start.month;
+      const eY = end.year;
+      const eM = end.month;
+
+      if (sY > eY || (sY === eY && sM > eM)) {
+        alert('เดือนเริ่มต้องไม่อยู่หลังเดือนสิ้นสุด');
+        return;
+      }
+
+      const weeks = getWeeks(sY, sM, eY, eM, includeWeekend);
+
+      if (!weeks.length) {
+        alert('ไม่พบสัปดาห์ในช่วงที่เลือก');
+        return;
+      }
+
+      const multiYear = sY !== eY;
+      const yearLabel = multiYear ? `${sY} – ${eY}` : `${sY}`;
+      const projName = document.getElementById('projectName').value || 'Project';
+
+      const groups = [];
+      let cur = null;
+
+      weeks.forEach(w => {
+        if (!cur || cur.month !== w.month || cur.year !== w.year) {
+          cur = { month: w.month, year: w.year, count: 0 };
+          groups.push(cur);
+        }
+        cur.count++;
+      });
+
+      const ROWS = 20;
+
+      let html = `
+        <div class="gantt-year-header">
+          ${yearLabel} <span>• ${projName}</span>
+        </div>
+        <div class="gantt-scroll">
+          <table class="gantt-table">
+            <thead>
+              <tr class="gantt-month-row">
+      `;
+
+      groups.forEach((g, idx) => {
+        html += `
+          <th colspan="${g.count}" ${idx === groups.length - 1 ? 'style="border-right:none"' : ''}>
+            ${MONTHS[g.month]}${multiYear ? ` <span style="font-size:11px;background:var(--primary-light);color:var(--primary);border-radius:5px;padding:1px 6px;font-family:'DM Mono',monospace;font-weight:700">${g.year}</span>` : ''}
+          </th>
+        `;
+      });
+
+      html += `</tr><tr class="gantt-week-row">`;
+
+      weeks.forEach(w => {
+        html += `
+          <th ${w.isMonthEnd ? 'class="month-end"' : ''}>
+            <div class="week-cell-inner">
+              <span class="week-label">W${w.wNum}</span>
+              <span class="week-dates">${w.monDate}–${w.endDate}</span>
+            </div>
+          </th>
+        `;
+      });
+
+      html += `</tr></thead><tbody>`;
+
+      for (let r = 1; r <= ROWS; r++) {
+        html += `<tr class="gantt-row">`;
+        weeks.forEach(w => {
+          html += `<td ${w.isMonthEnd ? 'class="month-end"' : ''}></td>`;
+        });
+        html += `</tr>`;
+      }
+
+      html += `</tbody></table></div>`;
+
+      document.getElementById('ganttWrap').innerHTML = html;
+    }
+
+    setDefaultPeriods();
+    generate();
+  </script>
 </body>
+
 </html>
