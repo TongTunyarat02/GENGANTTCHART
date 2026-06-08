@@ -210,8 +210,8 @@ function initSelects() {
     eM.innerHTML += `<option value="${i}" ${i===7?'selected':''}>${m}</option>`;
   });
   for (let y = cur - 3; y <= cur + 10; y++) {
-    sY.innerHTML += `<option value="${y}" ${y===2027?'selected':''}>${y}</option>`;
-    eY.innerHTML += `<option value="${y}" ${y===2027?'selected':''}>${y}</option>`;
+    sY.innerHTML += `<option value="${y}" ${y===cur?'selected':''}>${y}</option>`;
+    eY.innerHTML += `<option value="${y}" ${y===cur?'selected':''}>${y}</option>`;
   }
 }
 
