@@ -1,353 +1,926 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gantt Chart Generator</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #f4f6fb;
-    --surface: #ffffff;
-    --border: #e2e8f0;
-    --primary: #3b7ef8;
-    --primary-light: #eef3ff;
-    --primary-dark: #2563eb;
-    --text: #1e293b;
-    --muted: #64748b;
-    --header-bg: #f8fafc;
-    --row-even: #f8fafc;
-    --row-odd: #ffffff;
-    --shadow-lg: 0 4px 24px rgba(59,126,248,0.10);
-    --shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  .app-wrap { max-width: 100%; padding: 28px 24px 64px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gantt Chart Generator</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --primary: #3b7ef8;
+      --primary-light: #eef3ff;
+      --primary-dark: #2563eb;
+      --text: #1e293b;
+      --muted: #64748b;
+      --header-bg: #f8fafc;
+      --row-even: #f8fafc;
+      --row-odd: #ffffff;
+      --shadow-lg: 0 4px 24px rgba(59, 126, 248, 0.10);
+    }
 
-  /* CONTROL */
-  .control-card {
-    background: var(--surface);
-    border-radius: 16px;
-    box-shadow: var(--shadow-lg);
-    padding: 22px 28px;
-    margin-bottom: 24px;
-    border: 1px solid var(--border);
-  }
-  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-  .brand-icon {
-    width: 34px; height: 34px; background: var(--primary); border-radius: 9px;
-    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px;
-  }
-  .brand-title { font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: -0.3px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  .controls-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
-  .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
-  .ctrl-group label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
 
-  .ctrl-group input[type="text"] {
-    height: 38px; border: 1.5px solid var(--border); border-radius: 9px;
-    padding: 0 12px; font-family: 'DM Sans', sans-serif; font-size: 14px;
-    color: var(--text); background: var(--bg); outline: none; min-width: 155px;
-    transition: border-color .15s;
-  }
-  .ctrl-group input[type="text"]:focus { border-color: var(--primary); }
+    .app-wrap {
+      max-width: 100%;
+      padding: 28px 24px 64px;
+    }
 
-  .ctrl-group select {
-    height: 38px; border: 1.5px solid var(--border); border-radius: 9px;
-    padding: 0 28px 0 12px; font-family: 'DM Sans', sans-serif; font-size: 14px;
-    color: var(--text); background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%2364748b'/%3E%3C/svg%3E") right 10px center no-repeat;
-    appearance: none; outline: none; cursor: pointer; min-width: 82px; transition: border-color .15s;
-  }
-  .ctrl-group select:focus { border-color: var(--primary); }
+    .control-card {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      padding: 22px 28px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
 
-  .divider { font-size: 14px; color: var(--muted); padding-bottom: 6px; font-weight: 500; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
 
-  .weekend-toggle {
-    display: flex; border: 1.5px solid var(--border); border-radius: 9px; overflow: hidden; background: var(--bg);
-  }
-  .wk-btn {
-    padding: 0 14px; height: 38px; font-family: 'DM Sans', sans-serif; font-size: 13px;
-    font-weight: 500; background: none; border: none; cursor: pointer; color: var(--muted);
-    transition: background .15s, color .15s; white-space: nowrap;
-  }
-  .wk-btn.active { background: var(--primary); color: #fff; }
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--primary);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 17px;
+    }
 
-  .btn-generate {
-    height: 38px; padding: 0 22px; background: var(--primary); color: #fff; border: none;
-    border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; gap: 7px;
-    box-shadow: 0 2px 8px rgba(59,126,248,0.28); transition: background .15s, transform .1s;
-  }
-  .btn-generate:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.3px;
+    }
 
-  /* GANTT */
-  .gantt-wrap {
-    background: var(--surface); border-radius: 16px;
-    box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: hidden;
-  }
-  .gantt-year-header {
-    padding: 14px 24px 10px; font-size: 26px; font-weight: 700; color: var(--primary);
-    font-family: 'DM Mono', monospace; letter-spacing: -1px;
-    border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 10px;
-  }
-  .gantt-year-header span { font-size: 14px; color: var(--muted); font-weight: 400; font-family: 'DM Sans', sans-serif; letter-spacing: 0; }
-  .gantt-scroll { overflow-x: auto; }
-  .gantt-table { border-collapse: collapse; min-width: 100%; }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-end;
+    }
 
-  /* month row */
-  .gantt-month-row th {
-    background: var(--header-bg); font-size: 13px; font-weight: 700; color: var(--primary);
-    text-align: center; padding: 10px 0; border-right: 2px solid var(--border);
-    border-bottom: 1px solid var(--border); white-space: nowrap; letter-spacing: 0.4px;
-  }
+    .ctrl-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
 
-  /* week row */
-  .gantt-week-row th {
-    background: var(--surface); border-bottom: 2px solid var(--border);
-    min-width: 56px; padding: 0;
-  }
-  .week-cell-inner { display: flex; flex-direction: column; align-items: center; padding: 6px 4px 4px; gap: 2px; }
-  .week-label { font-size: 11px; font-weight: 700; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .week-dates { font-size: 10px; color: #94a3b8; font-family: 'DM Mono', monospace; }
+    .ctrl-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-  /* row number col */
+    .ctrl-group input[type="text"],
+    .ctrl-group select {
+      height: 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      padding: 0 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background-color: var(--bg);
+      outline: none;
+      min-width: 125px;
+      transition: border-color .15s;
+    }
 
+    .ctrl-group input[type="text"] {
+      min-width: 155px;
+    }
 
-  /* data rows */
-  .gantt-row td {
-    border-bottom: 1px solid var(--border); border-right: 1px solid #edf0f5; height: 38px;
-  }
-  .gantt-row:nth-child(odd) td { background: var(--row-odd); }
-  .gantt-row:nth-child(even) td { background: var(--row-even); }
-  .gantt-row:last-child td { border-bottom: none; }
+    .ctrl-group select {
+      padding-right: 28px;
+      appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%2364748b'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
 
+    .ctrl-group input[type="text"]:focus,
+    .ctrl-group select:focus {
+      border-color: var(--primary);
+    }
 
+    .divider {
+      font-size: 14px;
+      color: var(--muted);
+      padding-bottom: 6px;
+      font-weight: 500;
+    }
 
-  .month-end { border-right: 2px solid var(--border) !important; }
+    .weekend-toggle {
+      display: flex;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      overflow: hidden;
+      background: var(--bg);
+    }
 
-  .placeholder-msg {
-    text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; line-height: 1.6;
-  }
-  .placeholder-msg strong { display: block; font-size: 28px; margin-bottom: 6px; }
-</style>
+    .wk-btn {
+      padding: 0 14px;
+      height: 38px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+    }
+
+    .wk-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-generate {
+      height: 38px;
+      padding: 0 22px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 2px 8px rgba(59, 126, 248, 0.28);
+      transition: background .15s, transform .1s;
+    }
+
+    .btn-generate:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-task {
+      background: #0f766e;
+      box-shadow: 0 2px 8px rgba(15, 118, 110, .24);
+    }
+
+    .btn-task:hover {
+      background: #0d5f59;
+    }
+
+    .btn-export {
+      background: #dda20d;
+      box-shadow: 0 2px 8px rgba(15, 118, 110, .24);
+    }
+
+    .btn-export:hover {
+      background: #e7c86b;
+    }
+
+    .gantt-wrap {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .gantt-year-header {
+      padding: 14px 24px 10px;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: -1px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .gantt-year-header span {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 400;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0;
+    }
+
+    .gantt-scroll {
+      overflow: auto;
+      position: relative;
+    }
+
+    .gantt-stage {
+      position: relative;
+      display: inline-block;
+      min-width: 100%;
+    }
+
+    .gantt-table {
+      border-collapse: collapse;
+      min-width: 100%;
+      table-layout: fixed;
+    }
+
+    .gantt-month-row th {
+      background: var(--header-bg);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      padding: 10px 0;
+      border-right: 2px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      letter-spacing: 0.4px;
+    }
+
+    .gantt-week-row th {
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      min-width: 70px;
+      width: 70px;
+      padding: 0;
+    }
+
+    .week-cell-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 4px 4px;
+      gap: 2px;
+    }
+
+    .week-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .week-dates {
+      font-size: 10px;
+      color: #94a3b8;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .gantt-row td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid #edf0f5;
+      height: 56px;
+      min-width: 70px;
+      width: 70px;
+    }
+
+    .gantt-row:nth-child(odd) td {
+      background: var(--row-odd);
+    }
+
+    .gantt-row:nth-child(even) td {
+      background: var(--row-even);
+    }
+
+    .gantt-row:last-child td {
+      border-bottom: none;
+    }
+
+    .month-end {
+      border-right: 2px solid var(--border) !important;
+    }
+
+    .placeholder-msg {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .placeholder-msg strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .task-box {
+      position: absolute;
+      width: 140px;
+      height: 52px;
+      min-width: 40px;
+      min-height: 34px;
+      max-height: 360px;
+      background: #bfbfbf;
+      color: #fff;
+      border: 2px solid #0f4f66;
+      border-radius: 8px;
+      padding: 8px 48px 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      cursor: move;
+      z-index: 20;
+      user-select: none;
+      box-shadow: 0 3px 10px rgba(15, 79, 102, 0.22);
+      overflow: hidden;
+    }
+
+    .task-box.editing {
+      cursor: text;
+      user-select: text;
+    }
+
+    .task-box:focus {
+      outline: 2px solid #f59e0b;
+    }
+
+    .task-content {
+      min-height: 100%;
+      outline: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .task-toolbar {
+      position: absolute;
+      right: 6px;
+      top: 5px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      z-index: 3;
+    }
+
+    .task-color-picker {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, .7);
+      border-radius: 5px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .task-delete-btn {
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(255, 255, 255, .7);
+      border-radius: 5px;
+      color: #fff;
+      background: rgba(0, 0, 0, .16);
+      cursor: pointer;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .resize-right {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 10px;
+      height: 100%;
+      cursor: ew-resize;
+      z-index: 2;
+    }
+
+    .resize-bottom {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 10px;
+      cursor: ns-resize;
+      z-index: 2;
+    }
+
+    .resize-corner {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 16px;
+      height: 16px;
+      cursor: nwse-resize;
+      z-index: 4;
+    }
+
+    .resize-corner::after {
+      content: "";
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid rgba(255, 255, 255, .8);
+      border-bottom: 2px solid rgba(255, 255, 255, .8);
+    }
+
+    .hint {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    body.exporting .task-color-picker,
+    body.exporting .task-delete-btn,
+    body.exporting .resize-handle {
+      display: none !important;
+    }
+
+    body.exporting .task-box {
+      cursor: default !important;
+    }
+  </style>
 </head>
+
 <body>
-<div class="app-wrap">
-
-  <!-- CONTROL -->
-  <div class="control-card">
-    <div class="brand">
-      <div class="brand-icon">📅</div>
-      <div class="brand-title">Gantt Chart Generator</div>
-    </div>
-    <div class="controls-row">
-      <div class="ctrl-group">
-        <label>ชื่อโปรเจกต์</label>
-        <input type="text" id="projectName" value="My Project">
+  <div class="app-wrap">
+    <div class="control-card">
+      <div class="brand">
+        <div class="brand-icon">📅</div>
+        <div class="brand-title">Gantt Chart Generator</div>
       </div>
 
-      <div class="ctrl-group">
-        <label>เดือนเริ่ม</label>
-        <select id="startMonth"></select>
-      </div>
-      <div class="ctrl-group">
-        <label>ปีเริ่ม</label>
-        <select id="startYear"></select>
-      </div>
-
-      <div class="divider">→</div>
-
-      <div class="ctrl-group">
-        <label>เดือนสิ้นสุด</label>
-        <select id="endMonth"></select>
-      </div>
-      <div class="ctrl-group">
-        <label>ปีสิ้นสุด</label>
-        <select id="endYear"></select>
-      </div>
-
-      <div class="ctrl-group">
-        <label>รวม Weekend</label>
-        <div class="weekend-toggle">
-          <button class="wk-btn active" id="wkNo" onclick="setWeekend(false)">จ–ศ เท่านั้น</button>
-          <button class="wk-btn" id="wkYes" onclick="setWeekend(true)">รวม ส–อา</button>
+      <div class="controls-row">
+        <div class="ctrl-group">
+          <label>Project</label>
+          <input type="text" id="projectName" value="My Project" />
         </div>
+
+        <div class="ctrl-group">
+          <label>From</label>
+          <select id="startMonth"></select>
+        </div>
+        <div class="ctrl-group">
+          <label>Year</label>
+          <select id="startYear"></select>
+        </div>
+
+        <div class="divider">→</div>
+
+        <div class="ctrl-group">
+          <label>To</label>
+          <select id="endMonth"></select>
+        </div>
+        <div class="ctrl-group">
+          <label>Year</label>
+          <select id="endYear"></select>
+        </div>
+
+        <div class="ctrl-group">
+          <label>Weekend</label>
+          <div class="weekend-toggle">
+            <button type="button" class="wk-btn active" id="wkNo" onclick="setWeekend(false)">จ–ศ เท่านั้น</button>
+            <button type="button" class="wk-btn" id="wkYes" onclick="setWeekend(true)">รวม ส–อา</button>
+          </div>
+        </div>
+
+        <button class="btn-generate" type="button" onclick="generate()">Generate</button>
+        <button class="btn-generate btn-task" type="button" onclick="addFloatingTask()">+ Task</button>
+        <button class="btn-generate btn-export" onclick="exportGanttPNG()">Export </button>
       </div>
 
-      <button class="btn-generate" onclick="generate()">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M2 7h10M7 2v10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        Generate
-      </button>
+      <div class="hint">
+        วิธีใช้: กด Generate เพื่อสร้างตาราง → กด + Task เพื่อเพิ่มกล่อง → ลากกล่องเพื่อย้ายตำแหน่ง →
+        ลากขอบขวา/ล่าง/มุมขวาล่างเพื่อยืดขยาย → ดับเบิลคลิกข้อความเพื่อแก้ไข → เลือกสีจากปุ่มสีในกล่อง
+      </div>
+    </div>
+
+    <div class="gantt-wrap" id="ganttWrap">
+      <div class="placeholder-msg">
+        <strong>📊</strong>
+        เลือก Period แล้วกด Generate
+      </div>
     </div>
   </div>
 
-  <!-- GANTT OUTPUT -->
-  <div class="gantt-wrap" id="ganttWrap">
-    <div class="placeholder-msg">
-      <strong>📊</strong>
-      เลือก Period แล้วกด Generate
-    </div>
-  </div>
+  <script>
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let includeWeekend = false;
+    let floatingTaskCount = 0;
+    let activeAction = null;
 
-</div>
+    function initSelects() {
+      const cur = new Date().getFullYear();
+      const sM = document.getElementById('startMonth');
+      const eM = document.getElementById('endMonth');
+      const sY = document.getElementById('startYear');
+      const eY = document.getElementById('endYear');
 
-<script>
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let includeWeekend = false;
+      sM.innerHTML = '';
+      eM.innerHTML = '';
+      sY.innerHTML = '';
+      eY.innerHTML = '';
 
-function initSelects() {
-  const cur = new Date().getFullYear();
-  const sM = document.getElementById('startMonth');
-  const eM = document.getElementById('endMonth');
-  const sY = document.getElementById('startYear');
-  const eY = document.getElementById('endYear');
+      MONTHS.forEach((m, i) => {
+        sM.innerHTML += `<option value="${i}" ${i === 1 ? 'selected' : ''}>${m}</option>`;
+        eM.innerHTML += `<option value="${i}" ${i === 7 ? 'selected' : ''}>${m}</option>`;
+      });
 
-  MONTHS.forEach((m, i) => {
-    sM.innerHTML += `<option value="${i}" ${i===1?'selected':''}>${m}</option>`;
-    eM.innerHTML += `<option value="${i}" ${i===7?'selected':''}>${m}</option>`;
-  });
-  for (let y = cur - 3; y <= cur + 10; y++) {
-    sY.innerHTML += `<option value="${y}" ${y===cur?'selected':''}>${y}</option>`;
-    eY.innerHTML += `<option value="${y}" ${y===cur?'selected':''}>${y}</option>`;
-  }
-}
-
-function setWeekend(val) {
-  includeWeekend = val;
-  document.getElementById('wkYes').classList.toggle('active', val);
-  document.getElementById('wkNo').classList.toggle('active', !val);
-}
-
-function getWeeks(sY, sM, eY, eM, inclWe) {
-  const weeks = [];
-  const endLimit = new Date(eY, eM + 1, 0);
-
-  if (inclWe) {
-    // Weekend mode: week runs Sun–Sat
-    let d = new Date(sY, sM, 1);
-    const dow = d.getDay(); // 0=Sun
-    d.setDate(d.getDate() - dow); // back to Sunday
-
-    while (d <= endLimit) {
-      const sun = new Date(d);
-      const sat = new Date(d); sat.setDate(d.getDate() + 6);
-      const wed = new Date(d); wed.setDate(d.getDate() + 3);
-      const wM = wed.getMonth(); const wY = wed.getFullYear();
-      const inRange = (wY > sY || (wY === sY && wM >= sM)) && (wY < eY || (wY === eY && wM <= eM));
-      if (inRange) weeks.push({ month: wM, year: wY, monDate: sun.getDate(), endDate: sat.getDate() });
-      d.setDate(d.getDate() + 7);
+      for (let y = cur - 5; y <= cur + 10; y++) {
+        sY.innerHTML += `<option value="${y}" ${y === cur ? 'selected' : ''}>${y}</option>`;
+        eY.innerHTML += `<option value="${y}" ${y === cur ? 'selected' : ''}>${y}</option>`;
+      }
     }
-  } else {
-    // Weekday mode: week runs Mon–Fri
-    let d = new Date(sY, sM, 1);
-    const dow = d.getDay();
-    d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1)); // back to Monday
 
-    while (d <= endLimit) {
-      const mon = new Date(d);
-      const fri = new Date(d); fri.setDate(d.getDate() + 4);
-      const wed = new Date(d); wed.setDate(d.getDate() + 2);
-      const wM = wed.getMonth(); const wY = wed.getFullYear();
-      const inRange = (wY > sY || (wY === sY && wM >= sM)) && (wY < eY || (wY === eY && wM <= eM));
-      if (inRange) weeks.push({ month: wM, year: wY, monDate: mon.getDate(), endDate: fri.getDate() });
-      d.setDate(d.getDate() + 7);
+    function setWeekend(val) {
+      includeWeekend = val;
+      document.getElementById('wkYes').classList.toggle('active', val);
+      document.getElementById('wkNo').classList.toggle('active', !val);
+      generate();
     }
-  }
 
-  // number weeks per month
-  const counter = {};
-  weeks.forEach(w => {
-    const k = `${w.year}-${w.month}`;
-    counter[k] = (counter[k] || 0) + 1;
-    w.wNum = counter[k];
-    w.isMonthEnd = false; // will set below
-  });
-
-  // mark last week of each month
-  const lastIdx = {};
-  weeks.forEach((w, i) => { lastIdx[`${w.year}-${w.month}`] = i; });
-  Object.values(lastIdx).forEach(i => weeks[i].isMonthEnd = true);
-
-  return weeks;
-}
-
-function generate() {
-  const sM = +document.getElementById('startMonth').value;
-  const sY = +document.getElementById('startYear').value;
-  const eM = +document.getElementById('endMonth').value;
-  const eY = +document.getElementById('endYear').value;
-
-  if (sY > eY || (sY === eY && sM > eM)) {
-    alert('เดือนเริ่มต้องไม่อยู่หลังเดือนสิ้นสุด'); return;
-  }
-
-  const weeks = getWeeks(sY, sM, eY, eM, includeWeekend);
-  if (!weeks.length) { alert('ไม่พบสัปดาห์ในช่วงที่เลือก'); return; }
-
-  const multiYear = sY !== eY;
-  const yearLabel = multiYear ? `${sY} – ${eY}` : `${sY}`;
-  const projName = document.getElementById('projectName').value || 'Project';
-
-  // build month groups
-  const groups = [];
-  let cur = null;
-  weeks.forEach((w, i) => {
-    if (!cur || cur.month !== w.month || cur.year !== w.year) {
-      cur = { month: w.month, year: w.year, count: 0 };
-      groups.push(cur);
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
-    cur.count++;
-  });
 
-  // How many empty rows to show (enough to fill typical tasks)
-  const ROWS = 20;
+    function getWeeks(sY, sM, eY, eM, inclWe) {
+      const weeks = [];
+      const endLimit = new Date(eY, eM + 1, 0);
 
-  let html = `
-    <div class="gantt-year-header">
-      ${yearLabel} <span>• ${projName}</span>
-    </div>
-    <div class="gantt-scroll">
-    <table class="gantt-table">
-      <thead>
-        <tr class="gantt-month-row">
-          `;
+      if (inclWe) {
+        let d = new Date(sY, sM, 1);
+        d.setDate(d.getDate() - d.getDay());
 
-  groups.forEach(g => {
-    html += `<th colspan="${g.count}" ${g.count === groups[groups.length-1].count && g === groups[groups.length-1] ? 'style="border-right:none"':''}>
-      ${MONTHS[g.month]}${multiYear ? ` <span style="font-size:11px;background:var(--primary-light);color:var(--primary);border-radius:5px;padding:1px 6px;font-family:'DM Mono',monospace;font-weight:700">${g.year}</span>` : ''}
-    </th>`;
-  });
+        while (d <= endLimit) {
+          const start = new Date(d);
+          const end = new Date(d); end.setDate(d.getDate() + 6);
+          const mid = new Date(d); mid.setDate(d.getDate() + 3);
+          const wM = mid.getMonth();
+          const wY = mid.getFullYear();
+          const inRange = (wY > sY || (wY === sY && wM >= sM)) && (wY < eY || (wY === eY && wM <= eM));
+          if (inRange) weeks.push({ month: wM, year: wY, start, end, startDate: start.getDate(), endDate: end.getDate() });
+          d.setDate(d.getDate() + 7);
+        }
+      } else {
+        let d = new Date(sY, sM, 1);
+        const dow = d.getDay();
+        d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
 
-  html += `</tr><tr class="gantt-week-row">`;
-  weeks.forEach(w => {
-    html += `<th ${w.isMonthEnd ? 'class="month-end"' : ''}>
-      <div class="week-cell-inner">
-        <span class="week-label">W${w.wNum}</span>
-        <span class="week-dates">${w.monDate}–${w.endDate}</span>
-      </div>
-    </th>`;
-  });
+        while (d <= endLimit) {
+          const start = new Date(d);
+          const end = new Date(d); end.setDate(d.getDate() + 4);
+          const mid = new Date(d); mid.setDate(d.getDate() + 2);
+          const wM = mid.getMonth();
+          const wY = mid.getFullYear();
+          const inRange = (wY > sY || (wY === sY && wM >= sM)) && (wY < eY || (wY === eY && wM <= eM));
+          if (inRange) weeks.push({ month: wM, year: wY, start, end, startDate: start.getDate(), endDate: end.getDate() });
+          d.setDate(d.getDate() + 7);
+        }
+      }
 
-  html += `</tr></thead><tbody>`;
+      const counter = {};
+      weeks.forEach(w => {
+        const k = `${w.year}-${w.month}`;
+        counter[k] = (counter[k] || 0) + 1;
+        w.wNum = counter[k];
+        w.isMonthEnd = false;
+      });
 
-  for (let r = 1; r <= ROWS; r++) {
-    html += `<tr class="gantt-row">
-`;
-    weeks.forEach(w => {
-      html += `<td ${w.isMonthEnd ? 'class="month-end"' : ''}></td>`;
+      const lastIdx = {};
+      weeks.forEach((w, i) => { lastIdx[`${w.year}-${w.month}`] = i; });
+      Object.values(lastIdx).forEach(i => weeks[i].isMonthEnd = true);
+
+      return weeks;
+    }
+
+    function generate() {
+      const sM = +document.getElementById('startMonth').value;
+      const sY = +document.getElementById('startYear').value;
+      const eM = +document.getElementById('endMonth').value;
+      const eY = +document.getElementById('endYear').value;
+
+      if (sY > eY || (sY === eY && sM > eM)) {
+        alert('เดือนเริ่มต้องไม่อยู่หลังเดือนสิ้นสุด');
+        return;
+      }
+
+      const weeks = getWeeks(sY, sM, eY, eM, includeWeekend);
+      if (!weeks.length) {
+        alert('ไม่พบสัปดาห์ในช่วงที่เลือก');
+        return;
+      }
+
+      const groups = [];
+      let curGroup = null;
+      weeks.forEach(w => {
+        if (!curGroup || curGroup.month !== w.month || curGroup.year !== w.year) {
+          curGroup = { month: w.month, year: w.year, count: 0 };
+          groups.push(curGroup);
+        }
+        curGroup.count++;
+      });
+
+      const multiYear = sY !== eY;
+      const yearLabel = multiYear ? `${sY} – ${eY}` : `${sY}`;
+      const projName = document.getElementById('projectName').value || 'Project';
+      const ROWS = 20;
+
+      let html = `
+        <div class="gantt-year-header">
+          ${yearLabel} <span>• ${escapeHtml(projName)}</span>
+        </div>
+        <div class="gantt-scroll" id="ganttScroll">
+          <div class="gantt-stage" id="ganttStage">
+            <table class="gantt-table" id="ganttTable">
+              <thead>
+                <tr class="gantt-month-row">
+      `;
+
+      groups.forEach((g, idx) => {
+        html += `
+          <th colspan="${g.count}" ${idx === groups.length - 1 ? 'style="border-right:none"' : ''}>
+            ${MONTHS[g.month]}${multiYear ? ` <span style="font-size:11px;background:var(--primary-light);color:var(--primary);border-radius:5px;padding:1px 6px;font-family:'DM Mono',monospace;font-weight:700">${g.year}</span>` : ''}
+          </th>
+        `;
+      });
+
+      html += `</tr><tr class="gantt-week-row">`;
+
+      weeks.forEach(w => {
+        html += `
+          <th ${w.isMonthEnd ? 'class="month-end"' : ''}>
+            <div class="week-cell-inner">
+              <span class="week-label">W${w.wNum}</span>
+              <span class="week-dates">${w.startDate}–${w.endDate}</span>
+            </div>
+          </th>
+        `;
+      });
+
+      html += `</tr></thead><tbody>`;
+
+      for (let r = 0; r < ROWS; r++) {
+        html += `<tr class="gantt-row">`;
+        weeks.forEach(w => {
+          html += `<td ${w.isMonthEnd ? 'class="month-end"' : ''}></td>`;
+        });
+        html += `</tr>`;
+      }
+
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('ganttWrap').innerHTML = html;
+      floatingTaskCount = 0;
+      activeAction = null;
+    }
+
+    function addFloatingTask() {
+      const stage = document.getElementById('ganttStage');
+      if (!stage) {
+        alert('กรุณากด Generate ก่อน');
+        return;
+      }
+
+      const firstCell = stage.querySelector('.gantt-row td');
+      if (!firstCell) {
+        alert('ไม่พบช่องใน Gantt Chart');
+        return;
+      }
+
+      const stageRect = stage.getBoundingClientRect();
+      const cellRect = firstCell.getBoundingClientRect();
+
+      const box = document.createElement('div');
+      box.className = 'task-box';
+      box.dataset.id = `task-${Date.now()}`;
+      box.innerHTML = `
+        <div class="task-content" contenteditable="false">Task ${++floatingTaskCount}\nDetail...</div>
+        <div class="task-toolbar">
+          <input type="color" class="task-color-picker" value="#1f6f8b" title="เปลี่ยนสี" />
+          <button class="task-delete-btn" contenteditable="false">×</button>
+        </div>
+        <span class="resize-right"></span>
+        <span class="resize-bottom"></span>
+        <span class="resize-corner"></span>
+      `;
+
+      box.style.left = `${cellRect.left - stageRect.left + 6}px`;
+      box.style.top = `${cellRect.top - stageRect.top + 7}px`;
+      box.style.width = `${Math.max(130, firstCell.offsetWidth * 2 - 12)}px`;
+      box.style.height = `52px`;
+
+      stage.appendChild(box);
+      const defaultColor = '#bfbfbf';
+
+      box.style.background = defaultColor;
+      box.style.borderColor = defaultColor;
+      box.style.color = getContrastTextColor(defaultColor);
+      bindTaskBoxEvents(box);
+    }
+
+    function bindTaskBoxEvents(box) {
+      const content = box.querySelector('.task-content');
+      const colorPicker = box.querySelector('.task-color-picker');
+      const deleteBtn = box.querySelector('.task-delete-btn');
+
+      box.addEventListener('mousedown', function (e) {
+        if (e.target.closest('.task-toolbar')) return;
+        if (box.classList.contains('editing')) return;
+
+        const isResizeRight = e.target.classList.contains('resize-right');
+        const isResizeBottom = e.target.classList.contains('resize-bottom');
+        const isResizeCorner = e.target.classList.contains('resize-corner');
+
+        activeAction = {
+          type: isResizeCorner ? 'resize-both' : isResizeRight ? 'resize-x' : isResizeBottom ? 'resize-y' : 'drag',
+          box,
+          startX: e.clientX,
+          startY: e.clientY,
+          startLeft: parseFloat(box.style.left) || 0,
+          startTop: parseFloat(box.style.top) || 0,
+          startWidth: box.offsetWidth,
+          startHeight: box.offsetHeight
+        };
+
+        e.preventDefault();
+      });
+
+      box.addEventListener('dblclick', function (e) {
+        if (e.target.closest('.task-toolbar')) return;
+        box.classList.add('editing');
+        content.contentEditable = 'true';
+        content.focus();
+        placeCaretAtEnd(content);
+      });
+
+      content.addEventListener('blur', function () {
+        content.contentEditable = 'false';
+        box.classList.remove('editing');
+      });
+
+      // colorPicker.addEventListener('input', function (e) {
+      //   box.style.background = e.target.value;
+      //   box.style.borderColor = darkenColor(e.target.value, 35);
+      // });
+      colorPicker.addEventListener('input', function (e) {
+
+        const color = e.target.value;
+        const textColor = getContrastTextColor(color);
+
+        box.style.background = color;
+        box.style.borderColor = color;
+        box.style.color = textColor;
+      });
+
+      colorPicker.addEventListener('mousedown', e => e.stopPropagation());
+      colorPicker.addEventListener('click', e => e.stopPropagation());
+
+      deleteBtn.addEventListener('mousedown', e => e.stopPropagation());
+      deleteBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        box.remove();
+      });
+    }
+
+    document.addEventListener('mousemove', function (e) {
+      if (!activeAction) return;
+
+      const { box, type, startX, startY, startLeft, startTop, startWidth, startHeight } = activeAction;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (type === 'drag') {
+        box.style.left = `${Math.max(0, startLeft + dx)}px`;
+        box.style.top = `${Math.max(0, startTop + dy)}px`;
+        return;
+      }
+
+      if (type === 'resize-x' || type === 'resize-both') {
+        box.style.width = `${Math.max(40, startWidth + dx)}px`;
+      }
+
+      if (type === 'resize-y' || type === 'resize-both') {
+        box.style.height = `${Math.max(34, startHeight + dy)}px`;
+      }
     });
-    html += `</tr>`;
-  }
 
-  html += `</tbody></table></div>`;
-  document.getElementById('ganttWrap').innerHTML = html;
-}
+    document.addEventListener('mouseup', function () {
+      if (!activeAction) return;
 
-initSelects();
-generate();
-</script>
+      if (activeAction.type === 'drag' || activeAction.type === 'resize-x' || activeAction.type === 'resize-both') {
+        snapTaskToDayGrid(activeAction.box);
+      }
+
+      activeAction = null;
+    });
+
+    function snapTaskToDayGrid(box) {
+      const stage = document.getElementById('ganttStage');
+      const firstCell = stage?.querySelector('.gantt-row td');
+      if (!stage || !firstCell) return;
+
+      const dayWidth = firstCell.offsetWidth / (includeWeekend ? 7 : 5);
+      const left = parseFloat(box.style.left) || 0;
+      const width = box.offsetWidth;
+
+      const snappedLeft = Math.round(left / dayWidth) * dayWidth;
+      const snappedRight = Math.round((left + width) / dayWidth) * dayWidth;
+
+      box.style.left = `${Math.max(0, snappedLeft)}px`;
+      box.style.width = `${Math.max(dayWidth, snappedRight - snappedLeft)}px`;
+    }
+
+    function placeCaretAtEnd(el) {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    function darkenColor(hex, amount) {
+      const clean = hex.replace('#', '');
+      const num = parseInt(clean, 16);
+      let r = (num >> 16) - amount;
+      let g = ((num >> 8) & 0x00FF) - amount;
+      let b = (num & 0x0000FF) - amount;
+      r = Math.max(0, r);
+      g = Math.max(0, g);
+      b = Math.max(0, b);
+      return '#' + (b | (g << 8) | (r << 16)).toString(16).padStart(6, '0');
+    }
+
+    initSelects();
+    generate();
+
+    async function exportGanttPNG() {
+      const ganttWrap = document.getElementById('ganttWrap');
+
+      document.body.classList.add('exporting');
+
+      const canvas = await html2canvas(ganttWrap, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        width: ganttWrap.scrollWidth,
+        height: ganttWrap.scrollHeight,
+        windowWidth: ganttWrap.scrollWidth,
+        windowHeight: ganttWrap.scrollHeight
+      });
+
+      document.body.classList.remove('exporting');
+
+      const link = document.createElement('a');
+      link.download = `Gantt_${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    function getContrastTextColor(hexColor) {
+      const hex = hexColor.replace('#', '');
+
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+
+      const brightness =
+        (r * 299 + g * 587 + b * 114) / 1000;
+
+      return brightness > 160 ? '#000000' : '#FFFFFF';
+    }
+  </script>
 </body>
+
 </html>
