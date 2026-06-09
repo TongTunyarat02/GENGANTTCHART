@@ -550,12 +550,15 @@
       document.getElementById('periodEnd').value = now.format('YYYY-MM');
     }
 
+    // validate เดือนที่เลือก ถ้าไม่ตรงหรือเลือกผิดเงื่อนไขมันจะ toggle ให้เอง
     function periodRange(changedField) {
       const periodStart = document.getElementById('periodStart');
       const periodEnd = document.getElementById('periodEnd');
+      console.log('periodRange', periodStart.value, periodEnd.value);
 
       if (!periodStart.value || !periodEnd.value) return;
 
+      // เติม -01 เป็นวันที่ 1 เพื่อให้ lib แปลงเป็น date ให้
       const startDate = dayjs(`${periodStart.value}-01`);
       const endDate = dayjs(`${periodEnd.value}-01`);
 
@@ -578,18 +581,22 @@
       }
     }
 
+    // ดึงค่า year กับ month จาก input ออกมาเพื่อส่งไปใช้งานใน generate()
     function getMonthPeriodValue(id) {
       const value = document.getElementById(id).value;
+      console.log('getMonthPeriodValue', id, value);
+
       if (!value) return null;
 
-      const [year, month] = value.split('-').map(Number);
+      const [year, month] = value.split('-');
 
       return {
-        year,
-        month: month - 1 // JS / Day.js ใช้ month index 0-11
+        year: parseInt(year),
+        month: parseInt(month) - 1 // JS / Day.js ใช้ month index 0-11
       };
     }
 
+    // ดึงค่า weekend มาใช้งานในการ gen gantt chart
     function setWeekend(val) {
       includeWeekend = val;
       document.getElementById('wkYes').classList.toggle('active', val);
@@ -767,57 +774,120 @@
       positionTodayMarker();
     }
 
+    // ใส่เส้น marker ว่าวันปัจจุบันอยู่ตรงไหนแล้ว
     function positionTodayMarker() {
       const marker = document.getElementById('todayMarker');
-      const stage = document.getElementById('ganttStage');
       const weekCells = [...document.querySelectorAll('.gantt-week-row th')];
 
-      if (!marker || !stage || !weekCells.length || !currentWeeks.length) return;
+      if (!marker || !weekCells.length || !currentWeeks.length) return;
 
+      // dayjs.extend(isBetween)
       const today = dayjs();
-      const firstWeek = currentWeeks[0];
-      const lastWeek = currentWeeks[currentWeeks.length - 1];
 
-      if (today.isBefore(firstWeek.start, 'day') || today.isAfter(lastWeek.end, 'day')) {
-        marker.style.display = 'none';
-        return;
-      }
-
-      const firstCellRect = weekCells[0].getBoundingClientRect();
-      const stageRect = stage.getBoundingClientRect();
-      const weekWidth = firstCellRect.width;
-      const daysPerWeek = includeWeekend ? 7 : 5;
-      const dayWidth = weekWidth / daysPerWeek;
+      // หาว่าวันที่ปัจจุบันอยู่ให้ week ทั้งหมดที่เลือกมามั้ย
+      let weekIndex = -1;
 
       for (let i = 0; i < currentWeeks.length; i++) {
         const week = currentWeeks[i];
 
-        const isInThisWeek =
+        // if (today.isBetween(week.start, week.end, 'day', [])) {
+        //   weekIndex = i;
+        //   break;
+        // }
+        if (
           today.isSame(week.start, 'day') ||
           today.isSame(week.end, 'day') ||
-          (today.isAfter(week.start, 'day') && today.isBefore(week.end, 'day'));
-
-        if (isInThisWeek) {
-          let offsetDay;
-
-          if (includeWeekend) {
-            offsetDay = today.diff(week.start, 'day');
-          } else {
-            // Mon=1 -> 0, Tue=2 -> 1, ..., Fri=5 -> 4
-            // Weekend จะถูกบีบให้อยู่ในกรอบ Mon-Fri
-            offsetDay = Math.max(0, Math.min(4, today.day() - 1));
-          }
-
-          const left = (i * weekWidth) + (offsetDay * dayWidth);
-          marker.style.display = 'block';
-          marker.style.left = `${left}px`;
-          return;
+          (today.isAfter(week.start, 'day') &&
+            today.isBefore(week.end, 'day'))
+        ) {
+          weekIndex = i;
+          break;
         }
       }
+      // const weekIndex = currentWeeks.findIndex(week =>
+      //   today.isSame(week.start, 'day') ||
+      //   today.isSame(week.end, 'day') ||
+      //   (today.isAfter(week.start, 'day') && today.isBefore(week.end, 'day'))
+      // );
 
-      marker.style.display = 'none';
+      // ถ้าวันนี้ไม่ได้อยู่ในช่วงตาราง
+      if (weekIndex === -1) {
+        marker.style.display = 'none';
+        return;
+      }
+
+      const weekWidth = weekCells[0].getBoundingClientRect().width;
+      const daysPerWeek = includeWeekend ? 7 : 5;
+      const dayWidth = weekWidth / daysPerWeek;
+
+      let offsetDay;
+
+      if (includeWeekend) {
+        // กำหนดระยะห่างจาก วันปัจจุบัน กับ วันแรกในสัปดาห์ 
+        offsetDay = today.diff(currentWeeks[weekIndex].start, 'day');
+      } else {
+        // ตารางแสดงแค่ Mon–Fri --> ไม่สามารถใช้ diff() ตรง ๆ ได้ เพราะวันเสาร์อาทิตย์ไม่มีคอลัมน์ให้วาง marker
+        // แล้วใช้ Math.max(0, Math.min(4, ...)) เพื่อบีบค่าให้อยู่ในช่วง 0–4 เท่านั้น
+        offsetDay = Math.max(0, Math.min(4, today.day() - 1));
+      }
+
+      marker.style.display = 'block';
+      // เลื่อนเส้นตาม [ (ลำดับของweek * ความกว้างของ week นั้น) + (ระยะห่าง * ความกว้างของวัน)]
+      marker.style.left = `${(weekIndex * weekWidth) + (offsetDay * dayWidth)}px`;
     }
+    // function positionTodayMarker() {
+    //   const marker = document.getElementById('todayMarker');
+    //   const stage = document.getElementById('ganttStage');
+    //   const weekCells = [...document.querySelectorAll('.gantt-week-row th')];
 
+    //   if (!marker || !stage || !weekCells.length || !currentWeeks.length) return;
+
+    //   const today = dayjs();
+    //   const firstWeek = currentWeeks[0];
+    //   const lastWeek = currentWeeks[currentWeeks.length - 1];
+
+    //   // เช็คว่าถ้าวันปัจจุบัน ไม่ได้อยู่ในตารางที่ gen มา มันจะไม่แสดง
+    //   if (today.isBefore(firstWeek.start, 'day') || today.isAfter(lastWeek.end, 'day')) {
+    //     marker.style.display = 'none';
+    //     return;
+    //   }
+
+    //   const firstCellRect = weekCells[0].getBoundingClientRect();
+    //   const stageRect = stage.getBoundingClientRect();
+    //   const weekWidth = firstCellRect.width;
+    //   const daysPerWeek = includeWeekend ? 7 : 5;
+    //   const dayWidth = weekWidth / daysPerWeek;
+
+    //   for (let i = 0; i < currentWeeks.length; i++) {
+    //     const week = currentWeeks[i];
+
+    //     const isInThisWeek =
+    //       today.isSame(week.start, 'day') ||
+    //       today.isSame(week.end, 'day') ||
+    //       (today.isAfter(week.start, 'day') && today.isBefore(week.end, 'day'));
+
+    //     if (isInThisWeek) {
+    //       let offsetDay;
+
+    //       if (includeWeekend) {
+    //         offsetDay = today.diff(week.start, 'day');
+    //       } else {
+    //         // Mon=1 -> 0, Tue=2 -> 1, ..., Fri=5 -> 4
+    //         // Weekend จะถูกบีบให้อยู่ในกรอบ Mon-Fri
+    //         offsetDay = Math.max(0, Math.min(4, today.day() - 1));
+    //       }
+
+    //       const left = (i * weekWidth) + (offsetDay * dayWidth);
+    //       marker.style.display = 'block';
+    //       marker.style.left = `${left}px`;
+    //       return;
+    //     }
+    //   }
+
+    //   marker.style.display = 'none';
+    // }
+
+    // ใช้ flatpickr ให้เลือกค่า เดือน/ปี ได้
     function initMonthPickers() {
       const monthPickerOptions = {
         plugins: [
@@ -865,7 +935,7 @@
         useCORS: true,
         width: ganttStage.scrollWidth,
         height: ganttWrap.scrollHeight,
-        windowWidth: ganttStage.scrollWidth + 60, 
+        windowWidth: ganttStage.scrollWidth + 60,
         windowHeight: ganttWrap.scrollHeight,
         scrollX: 0,
         scrollY: 0
