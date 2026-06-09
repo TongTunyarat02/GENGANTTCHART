@@ -16,14 +16,18 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+
   <style>
     :root {
       --bg: #f4f6fb;
       --surface: #ffffff;
       --border: #e2e8f0;
-      --primary: #176983;
+      --primary: #0f5dca;
       --primary-light: #eef3ff;
-      --primary-dark: #176983;
+      --primary-dark: #033a79;
       --text: #1e293b;
       --muted: #64748b;
       --header-bg: #f8fafc;
@@ -69,7 +73,7 @@
     .brand-icon {
       width: 34px;
       height: 34px;
-      background: var(--primary);
+      background: #1A5765;
       border-radius: 9px;
       display: flex;
       align-items: center;
@@ -81,7 +85,7 @@
     .brand-title {
       font-size: 30px;
       font-weight: 700;
-      color: var(--primary);
+      color: #1A5765;
       letter-spacing: -0.3px;
     }
 
@@ -90,6 +94,7 @@
       flex-wrap: wrap;
       gap: 14px;
       align-items: flex-end;
+      margin-bottom: 5px;
     }
 
     .ctrl-group {
@@ -151,37 +156,73 @@
       font-weight: 500;
     }
 
-    .weekend-toggle {
+    .checkbox-control {
+      height: 38px;
       display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      background: var(--bg);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .checkbox-control input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #4C7D7E;
+      cursor: pointer;
+    }
+
+    .view-mode-toggle {
+      height: 38px;
+      display: flex;
+      align-items: center;
       border: 1.5px solid var(--border);
       border-radius: 9px;
       overflow: hidden;
       background: var(--bg);
     }
 
-    .wk-btn {
-      padding: 0 14px;
+    .view-mode-toggle input[type="radio"] {
+      display: none;
+    }
+
+    .view-mode-toggle label {
       height: 38px;
-      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
       font-size: 13px;
-      font-weight: 500;
-      background: none;
-      border: none;
-      cursor: pointer;
+      font-weight: 700;
       color: var(--muted);
+      cursor: pointer;
       transition: background .15s, color .15s;
       white-space: nowrap;
     }
 
-    .wk-btn.active {
-      background: var(--primary);
+    .view-mode-toggle input[type="radio"]:checked+span {
+      background: #4C7D7E;
       color: #fff;
+    }
+
+    .view-mode-toggle label span {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      margin: 0 -16px;
     }
 
     .btn-generate {
       height: 38px;
       padding: 0 22px;
-      background: var(--primary);
+      background: #4C7D7E;
       color: #fff;
       border: none;
       border-radius: 9px;
@@ -197,7 +238,7 @@
     }
 
     .btn-generate:hover {
-      background: var(--primary-dark);
+      background: #085051;
       transform: translateY(-1px);
     }
 
@@ -214,7 +255,7 @@
       padding: 14px 24px 10px;
       font-size: 26px;
       font-weight: 700;
-      color: var(--primary);
+      color: #2b2f33;
       font-family: 'DM Mono', monospace;
       letter-spacing: -1px;
       border-bottom: 1px solid var(--border);
@@ -379,7 +420,7 @@
     .gantt-year-bar {
       position: relative;
       height: 48px;
-      background: #176983;
+      background: var(--primary);
       color: #ffffff;
       font-size: 22px;
       font-weight: 900;
@@ -393,9 +434,8 @@
     .today-marker {
       position: absolute;
       top: 0;
-      bottom: auto;
       width: 0;
-      height: 1250px;
+      height: 0;
       border-left: 3px dashed #ff1f1f;
       z-index: 30;
       pointer-events: none;
@@ -474,14 +514,33 @@
       border-right: 2px solid #8b939b !important;
     }
 
-    body.exporting .task-color-picker,
-    body.exporting .task-delete-btn,
-    body.exporting .resize-handle {
+    body.exporting .task-color-picker {
       display: none !important;
     }
 
-    body.exporting .task-box {
-      cursor: default !important;
+    .task-toolbar {
+      position: absolute;
+      right: 6px;
+      top: 5px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      z-index: 3;
+    }
+
+    .task-color-picker {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, .7);
+      border-radius: 9px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .pickr .pcr-button {
+      width: 38px;
+      height: 38px;
     }
   </style>
 </head>
@@ -517,15 +576,46 @@
         </div>
 
         <div class="ctrl-group">
-          <label>Weekend</label>
-          <div class="weekend-toggle">
-            <button class="wk-btn active" id="wkNo" onclick="setWeekend(false)">จ–ศ เท่านั้น</button>
-            <button class="wk-btn" id="wkYes" onclick="setWeekend(true)">รวม ส–อา</button>
+          <label>View</label>
+          <div class="view-mode-toggle">
+            <label>
+              <input type="radio" name="viewMode" value="week" checked onchange="setViewMode(this.value)">
+              <span>Week</span>
+            </label>
+            <label>
+              <input type="radio" name="viewMode" value="day" onchange="setViewMode(this.value)">
+              <span>Day</span>
+            </label>
           </div>
         </div>
 
-        <button class="btn-generate btn-export" onclick="exportGanttPNG()">Export</button>
+        <div class="ctrl-group">
+          <label>Weekend</label>
+          <label class="checkbox-control">
+            <input type="checkbox" id="includeWeekendChk" onchange="toggleWeekend(this.checked)">
+            รวมวันเสาร์-อาทิตย์
+          </label>
+        </div>
+
+        <div class="ctrl-group">
+          <label>Today Marker</label>
+          <label class="checkbox-control">
+            <input type="checkbox" id="showWeAreHere" onchange="toggleWeAreHere(this.checked)">
+            Show "We are here"
+          </label>
+        </div>
+
+        <div class="ctrl-group">
+          <label>Color</label>
+          <button id="headerColorPicker" class="task-color-picker" type="button"></button>
+        </div>
+
+        <div class="ctrl-group">
+          <button class="btn-generate btn-export" onclick="exportGanttPNG()">Export</button>
+        </div>
+
       </div>
+
     </div>
 
     <!-- GANTT OUTPUT -->
@@ -541,13 +631,31 @@
   <script>
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     let includeWeekend = false;
+    let includeWeAreHere = false;
+    let viewMode = 'week';
     let currentWeeks = [];
+    let currentUnits = [];
 
     function setDefaultPeriods() {
       const now = dayjs();
 
       document.getElementById('periodStart').value = now.format('YYYY-MM');
       document.getElementById('periodEnd').value = now.format('YYYY-MM');
+    }
+
+    function toggleWeekend(checked) {
+      includeWeekend = checked;
+      generate();
+    }
+
+    function toggleWeAreHere(checked) {
+      includeWeAreHere = checked;
+      generate();
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      generate();
     }
 
     // validate เดือนที่เลือก ถ้าไม่ตรงหรือเลือกผิดเงื่อนไขมันจะ toggle ให้เอง
@@ -596,13 +704,6 @@
       };
     }
 
-    // ดึงค่า weekend มาใช้งานในการ gen gantt chart
-    function setWeekend(val) {
-      includeWeekend = val;
-      document.getElementById('wkYes').classList.toggle('active', val);
-      document.getElementById('wkNo').classList.toggle('active', !val);
-      generate();
-    }
 
     function getWeeks(sY, sM, eY, eM, inclWe) {
       const weeks = [];
@@ -682,6 +783,36 @@
       return weeks;
     }
 
+    function getDays(sY, sM, eY, eM, inclWe) {
+      const days = [];
+      let d = dayjs(new Date(sY, sM, 1));
+      const end = dayjs(new Date(eY, eM + 1, 0));
+
+      while (d.isBefore(end) || d.isSame(end, 'day')) {
+        const dayOfWeek = d.day();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+        if (inclWe || !isWeekend) {
+          days.push({
+            date: d,
+            day: d.date(),
+            dayName: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek],
+            month: d.month(),
+            year: d.year()
+          });
+        }
+
+        d = d.add(1, 'day');
+      }
+
+      for (let i = 0; i < days.length; i++) {
+        const next = days[i + 1];
+        days[i].isMonthEnd = !next || next.month !== days[i].month || next.year !== days[i].year;
+      }
+
+      return days;
+    }
+
     function generate() {
       const start = getMonthPeriodValue('periodStart');
       const end = getMonthPeriodValue('periodEnd');
@@ -699,10 +830,13 @@
       }
 
       const weeks = getWeeks(sY, sM, eY, eM, includeWeekend);
+      const days = getDays(sY, sM, eY, eM, includeWeekend);
+      const units = viewMode === 'day' ? days : weeks;
       currentWeeks = weeks;
+      currentUnits = units;
 
-      if (!weeks.length) {
-        alert('ไม่พบสัปดาห์ในช่วงที่เลือก');
+      if (!units.length) {
+        alert('ไม่พบข้อมูลในช่วงที่เลือก');
         return;
       }
 
@@ -713,15 +847,24 @@
       const groups = [];
       let cur = null;
 
-      weeks.forEach(w => {
-        if (!cur || cur.month !== w.month || cur.year !== w.year) {
-          cur = { month: w.month, year: w.year, count: 0 };
+      units.forEach(item => {
+        if (!cur || cur.month !== item.month || cur.year !== item.year) {
+          cur = { month: item.month, year: item.year, count: 0 };
           groups.push(cur);
         }
         cur.count++;
       });
 
-      const ROWS = 30;
+      const COLS = units.length;
+      const CELL_WIDTH = 58;
+      const CELL_HEIGHT = 38;
+      const HEADER_HEIGHT = 48 + 38 + 30; // year bar + month row + week/day row
+      const targetWidth = COLS * CELL_WIDTH;
+      const targetHeight = (targetWidth / 16) * 9;
+      const ROWS = Math.max(
+        10,
+        Math.ceil((targetHeight - HEADER_HEIGHT) / CELL_HEIGHT)
+      );
 
       let html = `
         <div class="gantt-scroll">
@@ -729,8 +872,9 @@
             <div class="gantt-year-bar">
               ${yearLabel}
               <div class="today-marker" id="todayMarker">
-              <div class="today-marker-label">We are Here</div>
+              <div class="today-marker-label">We are here</div>
             </div>
+          
             </div>
             <table class="gantt-table">
               <thead>
@@ -747,12 +891,17 @@
 
       html += `</tr><tr class="gantt-week-row">`;
 
-      weeks.forEach(w => {
+      // ${item.dayName} 
+      units.forEach(item => {
+        const label = viewMode === 'day'
+          ? `${item.day}<br><span style="font-size:10px;color:#64748b"></span>`
+          : `${item.monDate}–${item.endDate}`;
+
         html += `
-          <th ${w.isMonthEnd ? 'class="month-end"' : ''}>
+          <th ${item.isMonthEnd ? 'class="month-end"' : ''}>
             <div class="week-cell-inner">
-              <span class="week-label">W${w.wNum}</span>
-              <span class="week-dates">${w.monDate}–${w.endDate}</span>
+              <span class="week-label">${viewMode === 'week' ? `W${item.wNum}` : ''}</span>
+              <span class="week-dates">${label}</span>
             </div>
           </th>
         `;
@@ -762,8 +911,8 @@
 
       for (let r = 1; r <= ROWS; r++) {
         html += `<tr class="gantt-row">`;
-        weeks.forEach(w => {
-          html += `<td ${w.isMonthEnd ? 'class="month-end"' : ''}></td>`;
+        units.forEach(item => {
+          html += `<td ${item.isMonthEnd ? 'class="month-end"' : ''}></td>`;
         });
         html += `</tr>`;
       }
@@ -771,7 +920,54 @@
       html += `</tbody></table></div></div>`;
 
       document.getElementById('ganttWrap').innerHTML = html;
+
+      applyHeaderColor(headerColor);
+      initHeaderColorPicker();
       positionTodayMarker();
+    }
+
+    let headerColor = '#176983';
+    let pickr = null;
+
+    function applyHeaderColor(color) {
+      headerColor = color;
+
+      document.documentElement.style.setProperty('--primary', headerColor);
+
+      const yearBar = document.querySelector('.gantt-year-bar');
+      if (yearBar) {
+        yearBar.style.backgroundColor = headerColor;
+      }
+    }
+
+    function initHeaderColorPicker() {
+      const pickerEl = document.getElementById('headerColorPicker');
+      if (!pickerEl || pickr) return;
+
+      pickr = Pickr.create({
+        el: pickerEl,
+        theme: 'classic',
+        default: headerColor,
+
+        components: {
+          preview: true,
+          opacity: false,
+          hue: true,
+
+          interaction: {
+            hex: true,
+            input: true,
+            save: true,
+            clear: false
+          }
+        }
+      });
+
+      pickr.on('save', (color) => {
+        const hex = color.toHEXA().toString();
+        applyHeaderColor(hex);
+        pickr.hide();
+      });
     }
 
     // ใส่เส้น marker ว่าวันปัจจุบันอยู่ตรงไหนแล้ว
@@ -779,113 +975,65 @@
       const marker = document.getElementById('todayMarker');
       const weekCells = [...document.querySelectorAll('.gantt-week-row th')];
 
-      if (!marker || !weekCells.length || !currentWeeks.length) return;
+      const stage = document.getElementById('ganttStage');
 
-      // dayjs.extend(isBetween)
+      if (stage && marker) {
+        marker.style.height = `${stage.scrollHeight}px`;
+      }
+
+      if (!marker || !weekCells.length || !currentUnits.length) return;
+
+      // ถ้าไม่เลือกให้แสดง We are here ก็ไม่ต้องคำนวณอะไร แค่ซ่อน marker ไปเลย
+      if (!includeWeAreHere) {
+        marker.style.display = 'none';
+        return;
+      }
+
       const today = dayjs();
+      const cellWidth = weekCells[0].getBoundingClientRect().width;
 
-      // หาว่าวันที่ปัจจุบันอยู่ให้ week ทั้งหมดที่เลือกมามั้ย
+      if (viewMode === 'day') {
+        const dayIndex = currentUnits.findIndex(item => today.isSame(item.date, 'day'));
+
+        if (dayIndex === -1) {
+          marker.style.display = 'none';
+          return;
+        }
+
+        marker.style.display = 'block';
+        marker.style.left = `${(dayIndex * cellWidth) + (cellWidth / 2)}px`;
+        return;
+      }
+
       let weekIndex = -1;
 
       for (let i = 0; i < currentWeeks.length; i++) {
         const week = currentWeeks[i];
 
-        // if (today.isBetween(week.start, week.end, 'day', [])) {
-        //   weekIndex = i;
-        //   break;
-        // }
         if (
           today.isSame(week.start, 'day') ||
           today.isSame(week.end, 'day') ||
-          (today.isAfter(week.start, 'day') &&
-            today.isBefore(week.end, 'day'))
+          (today.isAfter(week.start, 'day') && today.isBefore(week.end, 'day'))
         ) {
           weekIndex = i;
           break;
         }
       }
-      // const weekIndex = currentWeeks.findIndex(week =>
-      //   today.isSame(week.start, 'day') ||
-      //   today.isSame(week.end, 'day') ||
-      //   (today.isAfter(week.start, 'day') && today.isBefore(week.end, 'day'))
-      // );
 
-      // ถ้าวันนี้ไม่ได้อยู่ในช่วงตาราง
       if (weekIndex === -1) {
         marker.style.display = 'none';
         return;
       }
 
-      const weekWidth = weekCells[0].getBoundingClientRect().width;
       const daysPerWeek = includeWeekend ? 7 : 5;
-      const dayWidth = weekWidth / daysPerWeek;
-
-      let offsetDay;
-
-      if (includeWeekend) {
-        // กำหนดระยะห่างจาก วันปัจจุบัน กับ วันแรกในสัปดาห์ 
-        offsetDay = today.diff(currentWeeks[weekIndex].start, 'day');
-      } else {
-        // ตารางแสดงแค่ Mon–Fri --> ไม่สามารถใช้ diff() ตรง ๆ ได้ เพราะวันเสาร์อาทิตย์ไม่มีคอลัมน์ให้วาง marker
-        // แล้วใช้ Math.max(0, Math.min(4, ...)) เพื่อบีบค่าให้อยู่ในช่วง 0–4 เท่านั้น
-        offsetDay = Math.max(0, Math.min(4, today.day() - 1));
-      }
+      const dayWidth = cellWidth / daysPerWeek;
+      const offsetDay = includeWeekend
+        ? today.diff(currentWeeks[weekIndex].start, 'day')
+        : Math.max(0, Math.min(4, today.day() - 1));
 
       marker.style.display = 'block';
-      // เลื่อนเส้นตาม [ (ลำดับของweek * ความกว้างของ week นั้น) + (ระยะห่าง * ความกว้างของวัน)]
-      marker.style.left = `${(weekIndex * weekWidth) + (offsetDay * dayWidth)}px`;
+      marker.style.left = `${(weekIndex * cellWidth) + (offsetDay * dayWidth)}px`;
     }
-    // function positionTodayMarker() {
-    //   const marker = document.getElementById('todayMarker');
-    //   const stage = document.getElementById('ganttStage');
-    //   const weekCells = [...document.querySelectorAll('.gantt-week-row th')];
-
-    //   if (!marker || !stage || !weekCells.length || !currentWeeks.length) return;
-
-    //   const today = dayjs();
-    //   const firstWeek = currentWeeks[0];
-    //   const lastWeek = currentWeeks[currentWeeks.length - 1];
-
-    //   // เช็คว่าถ้าวันปัจจุบัน ไม่ได้อยู่ในตารางที่ gen มา มันจะไม่แสดง
-    //   if (today.isBefore(firstWeek.start, 'day') || today.isAfter(lastWeek.end, 'day')) {
-    //     marker.style.display = 'none';
-    //     return;
-    //   }
-
-    //   const firstCellRect = weekCells[0].getBoundingClientRect();
-    //   const stageRect = stage.getBoundingClientRect();
-    //   const weekWidth = firstCellRect.width;
-    //   const daysPerWeek = includeWeekend ? 7 : 5;
-    //   const dayWidth = weekWidth / daysPerWeek;
-
-    //   for (let i = 0; i < currentWeeks.length; i++) {
-    //     const week = currentWeeks[i];
-
-    //     const isInThisWeek =
-    //       today.isSame(week.start, 'day') ||
-    //       today.isSame(week.end, 'day') ||
-    //       (today.isAfter(week.start, 'day') && today.isBefore(week.end, 'day'));
-
-    //     if (isInThisWeek) {
-    //       let offsetDay;
-
-    //       if (includeWeekend) {
-    //         offsetDay = today.diff(week.start, 'day');
-    //       } else {
-    //         // Mon=1 -> 0, Tue=2 -> 1, ..., Fri=5 -> 4
-    //         // Weekend จะถูกบีบให้อยู่ในกรอบ Mon-Fri
-    //         offsetDay = Math.max(0, Math.min(4, today.day() - 1));
-    //       }
-
-    //       const left = (i * weekWidth) + (offsetDay * dayWidth);
-    //       marker.style.display = 'block';
-    //       marker.style.left = `${left}px`;
-    //       return;
-    //     }
-    //   }
-
-    //   marker.style.display = 'none';
-    // }
 
     // ใช้ flatpickr ให้เลือกค่า เดือน/ปี ได้
     function initMonthPickers() {
@@ -894,9 +1042,10 @@
           new monthSelectPlugin({
             shorthand: true,
             dateFormat: 'Y-m',
-            altFormat: 'F Y'
+            altFormat: 'M Y'
           })
         ],
+        altInput: true,
         allowInput: false
       };
 
@@ -929,68 +1078,34 @@
       //   a.click();
       // });
 
-      const canvas = await html2canvas(ganttWrap, {
+      const exportWidth = ganttStage.scrollWidth;
+      const exportHeight = Math.ceil((exportWidth / 16) * 9);
+
+      const oldHeight = ganttStage.style.height;
+      ganttStage.style.height = `${exportHeight}px`;
+
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      await html2canvas(ganttWrap, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        width: ganttStage.scrollWidth,
-        height: ganttWrap.scrollHeight,
-        windowWidth: ganttStage.scrollWidth + 60,
-        windowHeight: ganttWrap.scrollHeight,
+        width: exportWidth,
+        height: exportHeight,
+        windowWidth: exportWidth + 60,
+        windowHeight: exportHeight,
         scrollX: 0,
         scrollY: 0
       }).then(canvas => {
-        var a = document.createElement("a");
-        a.href = canvas.toDataURL();
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL('image/png');
         a.download = "capture.png";
         a.click();
       });
 
+      ganttStage.style.height = oldHeight;
 
-
-      // const ganttWrap = document.getElementById('ganttWrap');
-      // const ganttScroll = document.querySelector('.gantt-scroll');
-      // const ganttStage = document.getElementById('ganttStage') || document.querySelector('.gantt-table');
-
-      // document.body.classList.add('exporting');
-
-      // const oldWrapOverflow = ganttWrap.style.overflow;
-      // const oldScrollOverflow = ganttScroll.style.overflow;
-      // const oldScrollLeft = ganttScroll.scrollLeft;
-      // const oldStageWidth = ganttStage.style.width;
-
-      // ganttScroll.scrollLeft = 0;
-      // ganttWrap.style.overflow = 'visible';
-      // ganttScroll.style.overflow = 'visible';
-      // ganttStage.style.width = `${ganttStage.scrollWidth}px`;
-
-      // await new Promise(resolve => requestAnimationFrame(resolve));
-
-      // const canvas = await html2canvas(ganttWrap, {
-      //   scale: 2,
-      //   backgroundColor: '#ffffff',
-      //   useCORS: true,
-      //   width: ganttStage.scrollWidth,
-      //   height: ganttWrap.scrollHeight,
-      //   windowWidth: ganttStage.scrollWidth,
-      //   windowHeight: ganttWrap.scrollHeight,
-      //   scrollX: 0,
-      //   scrollY: 0
-      // });
-
-      // ganttWrap.style.overflow = oldWrapOverflow;
-      // ganttScroll.style.overflow = oldScrollOverflow;
-      // ganttScroll.scrollLeft = oldScrollLeft;
-      // ganttStage.style.width = oldStageWidth;
-
-      // document.body.classList.remove('exporting');
-
-      // const link = document.createElement('a');
-      // link.download = `Gantt_${new Date().toISOString().slice(0, 10)}.png`;
-      // link.href = canvas.toDataURL('image/png');
-      // link.click();
     }
-
   </script>
 </body>
 
