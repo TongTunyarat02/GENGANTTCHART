@@ -8,16 +8,21 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
     rel="stylesheet">
+
+  <!-- lib: day.js สำหรับจัดการเรื่องวันที่ -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+
+  <!-- lib: html2canvas สำหรับแปลง HTML เป็นภาพ -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <!-- lib: flatpickr สำหรับจ datePicker -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
 
+  <!-- lib: pickr สำหรับจัดการสี -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css">
-
   <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
 
   <style>
@@ -343,6 +348,11 @@
       border-right: 2px solid var(--border) !important;
     }
 
+    .gantt-month-row th.month-end {
+      border-right: 3px solid #8c939b !important;
+    }
+
+
     .placeholder-msg {
       text-align: center;
       padding: 60px 20px;
@@ -431,7 +441,7 @@
       border-bottom: 1px solid #9aa3ab;
     }
 
-    /* .today-marker {
+    .today-marker {
       position: absolute;
       top: 0;
       width: 0;
@@ -439,7 +449,7 @@
       border-left: 3px dashed #ff1f1f;
       z-index: 30;
       pointer-events: none;
-    } */
+    }
 
     .today-marker-label {
       position: absolute;
@@ -479,7 +489,7 @@
       font-size: 12px;
       font-weight: 800;
       height: 30px;
-      min-width: 58px;
+      min-width: auto;
       padding: 0;
       border-right: 1px dashed #d3d7dc;
       border-bottom: 1px solid #d3d7dc;
@@ -543,40 +553,17 @@
       height: 38px;
     }
 
-    .gantt-stage.export-16-9 {
-      display: block;
-      overflow: hidden;
-      background: #ffffff;
+    .gantt-week-row th,
+    .gantt-row td {
+      border-right: 1px solid #e1e5ed;
     }
 
-    .gantt-stage.export-16-9 .gantt-table {
-      width: 100%;
-      height: calc(100% - 48px);
-      table-layout: fixed;
+    .week-end {
+      border-right: 2px solid #d3d7dd !important;
     }
 
-    .gantt-stage.export-16-9 .gantt-row td {
-      height: var(--export-row-height, 38px);
-    }
-
-    .gantt-stage.export-16-9 .today-marker {
-      height: 100% !important;
-    }
-
-    .today-marker {
-      position: absolute;
-      top: 0;
-      width: 3px;
-      height: 0;
-      background: repeating-linear-gradient(to bottom,
-          #ff1f1f 0 10px,
-          transparent 10px 18px);
-      z-index: 9999;
-      pointer-events: none;
-    }
-
-    body.exporting .today-marker {
-      z-index: 99999 !important;
+    .month-end {
+      border-right: 3px solid #8c939b !important;
     }
   </style>
 </head>
@@ -633,13 +620,13 @@
           </label>
         </div>
 
-        <!-- <div class="ctrl-group">
+        <div class="ctrl-group">
           <label>Today Marker</label>
           <label class="checkbox-control">
             <input type="checkbox" id="showWeAreHere" onchange="toggleWeAreHere(this.checked)">
             Show "We are here"
           </label>
-        </div> -->
+        </div>
 
         <div class="ctrl-group">
           <label>Color</label>
@@ -756,6 +743,7 @@
         // นับวันแรกของสัปดาห์เป็นวันจันทร์-ศุกร์
         // ถ้าวันแรกเป็นวันพุธ day = 3 เข้าฟังก์ชั่นคือ 3-1 = 2 โดยใช้ subtract ย้อนกลับไป 2 วันจะได้เป็นวันจันทร์เริ่มสัปดาห์
         d = d.subtract(
+          // วันอาทิตย์ใน dayjs จะได้ค่าเป็น 0 แต่เราต้องการให้เป็น 6 เพราะถ้านับแบบ Monday-Sunday จะต้องย้อนกลับไป 6 วันถึงจะเจอวันจันทร์
           d.day() === 0 ? 6 : d.day() - 1,
           'day'
         );
@@ -825,10 +813,10 @@
       const end = dayjs(new Date(eY, eM + 1, 0));
 
       while (d.isBefore(end) || d.isSame(end, 'day')) {
-        const dayOfWeek = d.day();
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const dayOfWeek = d.day();                            // Example: เป็นวันอังคาร = 2 
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // false
 
-        if (inclWe || !isWeekend) {
+        if (inclWe || !isWeekend) {                           // true
           days.push({
             date: d,
             day: d.date(),
@@ -841,9 +829,24 @@
         d = d.add(1, 'day');
       }
 
+      // โค้ดนี้คือการวนเช็คทุกวันใน days เพื่อใส่ flag ว่า
+      // วันไหนเป็นวันสุดท้ายของเดือน
+      // วันไหนเป็นวันสุดท้ายของสัปดาห์
+      console.log("all days: ", days);
+
       for (let i = 0; i < days.length; i++) {
         const next = days[i + 1];
-        days[i].isMonthEnd = !next || next.month !== days[i].month || next.year !== days[i].year;
+
+        // 1. ถ้าไม่มีวันถัดไปแล้วแปลว่าเป็นช่องสุดท้ายของตาราง
+        // 2. ถ้าวันถัดไปคนละเดือน เช่น 30 Jun → 1 Jul แปลว่าวันปัจจุบันคือท้ายเดือน
+        // 3. ถ้าวันถัดไปคนละปี เช่น 31 Dec → 1 Jan ก็ถือว่าเป็นท้ายเดือนเหมือนกัน
+        days[i].isMonthEnd = !next || next.month !== days[i].month || next.year !== days[i].year; // true/false
+
+        days[i].isWeekEnd =
+          !next ||                                      // ถ้าไม่มีวันแล้วแปลว่าเป็นช่องสุดท้ายของวีคนั้น
+          next.year !== days[i].year ||                 // ถ้าวันถัดไปอยู่คนละปี
+          next.date.diff(days[i].date, 'day') > 1 ||    // ถ้าวันถัดไปอยู่มากกว่า 1 วัน (case ที่ไม่รวม weekend)
+          next.date.day() === 1;                        // ถ้าวันถัดไปเป็นวันจันทร์ไหม (case ที่รวม weekend)
       }
 
       return days;
@@ -892,12 +895,16 @@
       });
 
       const COLS = units.length;
-      const CELL_WIDTH = 58;
+      // const CELL_WIDTH = 58;
+      const CELL_WIDTH = viewMode === 'day'
+        ? 26   // Day
+        : 58;  // Week
+
       const CELL_HEIGHT = 38;
       const HEADER_HEIGHT = 48 + 38 + 30;
       const MIN_EXPORT_WIDTH = 1920;
 
-      // คำนวณจำนวน row ให้สัมพันธ์กับ ratio 16:9 โดยใช้ความกว้างจริงของตาราง
+      // คำนวณจำนวน row ==> ratio 16:9 โดยใช้ความกว้างจริงของตาราง
       const targetWidth = Math.max(COLS * CELL_WIDTH, MIN_EXPORT_WIDTH);
       const targetHeight = Math.ceil((targetWidth / 16) * 9);
 
@@ -912,7 +919,7 @@
             <div class="gantt-year-bar">
               ${yearLabel}
               <div class="today-marker" id="todayMarker">
-              <!-- <div class="today-marker-label">We are here</div> -->
+              <div class="today-marker-label">We are here</div>
             </div>
           
             </div>
@@ -921,9 +928,17 @@
                 <tr class="gantt-month-row">
       `;
 
+      // groups.forEach((g, idx) => {
+      //   html += `
+      //     <th colspan="${g.count}" ${idx === groups.length - 1 ? 'style="border-right:none"' : ''}>
+      //       ${MONTHS[g.month]}${multiYear ? ` <span style="font-size:11px;background:var(--primary-light);color:var(--primary);border-radius:5px;padding:1px 6px;font-family:'DM Mono',monospace;font-weight:700">${g.year}</span>` : ''}
+      //     </th>
+      //   `;
+      // });
+
       groups.forEach((g, idx) => {
         html += `
-          <th colspan="${g.count}" ${idx === groups.length - 1 ? 'style="border-right:none"' : ''}>
+          <th colspan="${g.count}" class="month-end">
             ${MONTHS[g.month]}${multiYear ? ` <span style="font-size:11px;background:var(--primary-light);color:var(--primary);border-radius:5px;padding:1px 6px;font-family:'DM Mono',monospace;font-weight:700">${g.year}</span>` : ''}
           </th>
         `;
@@ -933,12 +948,19 @@
 
       // ${item.dayName} 
       units.forEach(item => {
+
+        const borderClass = item.isMonthEnd
+          ? 'month-end'
+          : item.isWeekEnd
+            ? 'week-end'
+            : '';
+
         const label = viewMode === 'day'
-          ? `${item.day}<br><span style="font-size:10px;color:#64748b"></span>`
+          ? `${item.day}`
           : `${item.monDate}–${item.endDate}`;
 
         html += `
-          <th ${item.isMonthEnd ? 'class="month-end"' : ''}>
+          <th class="${borderClass}" style="width:${CELL_WIDTH}px;min-width:${CELL_WIDTH}px">
             <div class="week-cell-inner">
               <span class="week-label">${viewMode === 'week' ? `W${item.wNum}` : ''}</span>
               <span class="week-dates">${label}</span>
@@ -951,8 +973,22 @@
 
       for (let r = 1; r <= ROWS; r++) {
         html += `<tr class="gantt-row">`;
+        // units.forEach(item => {
+        //   html += `<td style="width:${CELL_WIDTH}px;min-width:${CELL_WIDTH}px" ${item.isMonthEnd ? 'class="month-end"' : ''}></td>`;
+        //   // html += `<td ${item.isMonthEnd ? 'class="month-end"' : ''}></td>`;
+        // });
+
         units.forEach(item => {
-          html += `<td ${item.isMonthEnd ? 'class="month-end"' : ''}></td>`;
+
+          const borderClass = item.isMonthEnd
+            ? 'month-end'
+            : item.isWeekEnd
+              ? 'week-end'
+              : '';
+
+          html += `
+            <td class="${borderClass}" style="width:${CELL_WIDTH}px;min-width:${CELL_WIDTH}px"></td>
+          `;
         });
         html += `</tr>`;
       }
@@ -963,7 +999,7 @@
 
       applyHeaderColor(headerColor);
       initHeaderColorPicker();
-      // positionTodayMarker();
+      positionTodayMarker();
     }
 
     let headerColor = '#176983';
@@ -1116,117 +1152,61 @@
     initMonthPickers();
     generate();
 
+    // async function exportGanttPNG() {
+    //   console.log('width:', ganttStage.scrollWidth, 'height:', ganttWrap.scrollHeight);
+
+    //   const canvas = await html2canvas(ganttWrap, {
+    //     scale: 2,
+    //     backgroundColor: '#ffffff',
+    //     useCORS: true,
+    //     width: ganttStage.scrollWidth,
+    //     height: ganttWrap.scrollHeight,
+    //     windowWidth: ganttStage.scrollWidth + 50,
+    //     windowHeight: ganttWrap.scrollHeight,
+    //     scrollX: 0,
+    //     scrollY: 0
+    //   }).then(canvas => {
+    //     var a = document.createElement("a");
+    //     a.href = canvas.toDataURL();
+    //     a.download = "capture.png";
+    //     a.click();
+    //   });
+    // }
     async function exportGanttPNG() {
-      const ganttWrap = document.getElementById('ganttWrap');
       const ganttStage = document.getElementById('ganttStage');
+      // console.log('stage scrollWidth', ganttStage.scrollWidth);
+      // console.log('stage clientWidth', ganttStage.clientWidth);
+
       const ganttTable = document.querySelector('.gantt-table');
+      // console.log('table scrollWidth', ganttTable.scrollWidth);
+      // console.log('table clientWidth', ganttTable.clientWidth);
+      // console.log('table offsetWidth', ganttTable.offsetWidth);
 
-      if (!ganttWrap || !ganttStage || !ganttTable) return;
+      if (!ganttStage || !ganttTable) return;
 
-      const MIN_EXPORT_WIDTH = 1920;
-      const HEADER_HEIGHT = 48 + 38 + 30;
+      const exportWidth = Math.ceil(ganttTable.getBoundingClientRect().width);
+      const exportHeight = Math.round(exportWidth * 9 / 16);
 
-      const exportWidth = Math.max(
-        ganttTable.scrollWidth,
-        ganttStage.scrollWidth,
-        MIN_EXPORT_WIDTH
-      );
 
-      const exportHeight = Math.round((exportWidth / 16) * 9);
+      const canvas = await html2canvas(ganttStage, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
 
-      const rows = [...document.querySelectorAll('.gantt-row')];
-      const rowHeight = rows.length
-        ? (exportHeight - HEADER_HEIGHT) / rows.length
-        : 38;
+        width: exportWidth,
+        height: exportHeight,
 
-      const oldWrapOverflow = ganttWrap.style.overflow;
-      const oldStageWidth = ganttStage.style.width;
-      const oldStageHeight = ganttStage.style.height;
-      const oldStageOverflow = ganttStage.style.overflow;
-      const oldCssRowHeight =
-        ganttStage.style.getPropertyValue('--export-row-height');
+        windowWidth: exportWidth,
+        windowHeight: exportHeight,
 
-      const marker = document.getElementById('todayMarker');
-      const oldMarkerDisplay = marker ? marker.style.display : '';
-      const oldMarkerHeight = marker ? marker.style.height : '';
-      const oldMarkerLeft = marker ? marker.style.left : '';
-      const oldMarkerZIndex = marker ? marker.style.zIndex : '';
+        scrollX: 0,
+        scrollY: 0
+      });
 
-      try {
-        document.body.classList.add('exporting');
-
-        ganttWrap.style.overflow = 'hidden';
-
-        ganttStage.classList.add('export-16-9');
-        ganttStage.style.width = `${exportWidth}px`;
-        ganttStage.style.height = `${exportHeight}px`;
-        ganttStage.style.overflow = 'hidden';
-        ganttStage.style.setProperty(
-          '--export-row-height',
-          `${rowHeight}px`
-        );
-
-        await new Promise(resolve => requestAnimationFrame(resolve));
-
-        // สำคัญ: หลังปรับ stage เป็นขนาด export แล้ว ความกว้าง cell จะเปลี่ยน
-        // ต้องคำนวณตำแหน่งเส้น We are here ใหม่ก่อน html2canvas
-        // positionTodayMarker();
-
-        if (marker) {
-          if (includeWeAreHere) {
-            marker.style.display = 'block';
-            marker.style.height = `${exportHeight}px`;
-            marker.style.zIndex = '99999';
-          } else {
-            marker.style.display = 'none';
-          }
-        }
-
-        await new Promise(resolve => requestAnimationFrame(resolve));
-
-        const canvas = await html2canvas(ganttStage, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          width: exportWidth,
-          height: exportHeight,
-          windowWidth: exportWidth,
-          windowHeight: exportHeight,
-          scrollX: 0,
-          scrollY: 0
-        });
-
-        const a = document.createElement('a');
-        a.href = canvas.toDataURL('image/png');
-        a.download = 'capture.png';
-        a.click();
-      } finally {
-        ganttStage.classList.remove('export-16-9');
-        ganttStage.style.width = oldStageWidth;
-        ganttStage.style.height = oldStageHeight;
-        ganttStage.style.overflow = oldStageOverflow;
-
-        if (oldCssRowHeight) {
-          ganttStage.style.setProperty(
-            '--export-row-height',
-            oldCssRowHeight
-          );
-        } else {
-          ganttStage.style.removeProperty('--export-row-height');
-        }
-
-        if (marker) {
-          marker.style.display = oldMarkerDisplay;
-          marker.style.height = oldMarkerHeight;
-          marker.style.left = oldMarkerLeft;
-          marker.style.zIndex = oldMarkerZIndex;
-        }
-
-        ganttWrap.style.overflow = oldWrapOverflow;
-        document.body.classList.remove('exporting');
-
-        // positionTodayMarker();
-      }
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "capture.png";
+      a.click();
     }
   </script>
 </body>
