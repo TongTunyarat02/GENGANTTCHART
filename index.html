@@ -621,6 +621,14 @@
         </div>
 
         <div class="ctrl-group">
+          <label>Period Padding</label>
+          <label class="checkbox-control">
+            <input type="checkbox" id="extendPeriodChk" onchange="togglePeriodPadding(this.checked)">
+            เพิ่มก่อน-หลัง 2 สัปดาห์
+          </label>
+        </div>
+
+        <div class="ctrl-group">
           <label>Today Marker</label>
           <label class="checkbox-control">
             <input type="checkbox" id="showWeAreHere" onchange="toggleWeAreHere(this.checked)">
@@ -654,6 +662,7 @@
   <script>
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     let includeWeekend = false;
+    let extendPeriod = false;
     let includeWeAreHere = false;
     let viewMode = 'week';
     let currentWeeks = [];
@@ -668,6 +677,11 @@
 
     function toggleWeekend(checked) {
       includeWeekend = checked;
+      generate();
+    }
+
+    function togglePeriodPadding(checked) {
+      extendPeriod = checked;
       generate();
     }
 
@@ -728,11 +742,29 @@
     }
 
 
-    function getWeeks(sY, sM, eY, eM, inclWe) {
+    function getWeeks(sY, sM, eY, eM, inclWe, addPadding) {
       const weeks = [];
 
       let d = dayjs(new Date(sY, sM, 1));
       const end = dayjs(new Date(eY, eM + 1, 0));
+
+      function createWeek(weekStart) {
+        const weekEnd = inclWe
+          ? weekStart.add(6, 'day')
+          : weekStart.add(4, 'day');
+        const middleDay = inclWe
+          ? weekStart.add(3, 'day')
+          : weekStart.add(2, 'day');
+
+        return {
+          month: middleDay.month(),
+          year: middleDay.year(),
+          monDate: weekStart.date(),
+          endDate: weekEnd.date(),
+          start: weekStart,
+          end: weekEnd
+        };
+      }
 
       // inclWe = true  => Sunday - Saturday
       // inclWe = false => Monday - Friday
@@ -752,19 +784,10 @@
       // นับวันในแต่ละสัปดาห์ไปเรื่อยๆจนกว่าจะถึง endDate ของเดือนที่เลือก
       while (d.isBefore(end) || d.isSame(end, 'day')) {
         const weekStart = d;
+        const week = createWeek(weekStart);
 
-        // หาวันสุดท้ายของสัปดาห์ เช็คจาก weeked ที่เลือกถ้านับรวมจะนับต่อไปอีก 6 วัน แต่ถ้าไม่รวมจะนับต่อไปอีก 4 วัน
-        const weekEnd = inclWe
-          ? d.add(6, 'day')
-          : d.add(4, 'day');
-
-        // ใช้วันกลางสัปดาห์เพื่อดูว่า Week นี้เป็นของเดือนไหน
-        const middleDay = inclWe
-          ? d.add(3, 'day')
-          : d.add(2, 'day');
-
-        const wM = middleDay.month();
-        const wY = middleDay.year();
+        const wM = week.month;
+        const wY = week.year;
 
         const inRange =
           (wY > sY || (wY === sY && wM >= sM)) &&
@@ -772,18 +795,25 @@
 
         // ถ้าวันพุธยังไม่ถึงเดือนที่เลือก จะไม่ถูกนับเป็นสัปดาห์ในช่วงนั้น
         if (inRange) {
-          weeks.push({
-            month: wM,
-            year: wY,
-            monDate: weekStart.date(),
-            endDate: weekEnd.date(),
-            start: weekStart,
-            end: weekEnd
-          });
+          weeks.push(week);
         }
 
         // กำหนดให้ d เป็นวันแรกของสัปดาห์ถัดไปโดย +เพิ่มไปอีก 7 วัน
         d = d.add(7, 'day');
+      }
+
+      if (addPadding && weeks.length) {
+        const firstWeekStart = weeks[0].start;
+        const lastWeekStart = weeks[weeks.length - 1].start;
+
+        weeks.unshift(
+          createWeek(firstWeekStart.subtract(14, 'day')),
+          createWeek(firstWeekStart.subtract(7, 'day'))
+        );
+        weeks.push(
+          createWeek(lastWeekStart.add(7, 'day')),
+          createWeek(lastWeekStart.add(14, 'day'))
+        );
       }
 
       // นับว่าแต่ละเดือนมีกี่ week 
@@ -807,10 +837,15 @@
       return weeks;
     }
 
-    function getDays(sY, sM, eY, eM, inclWe) {
+    function getDays(sY, sM, eY, eM, inclWe, addPadding) {
       const days = [];
       let d = dayjs(new Date(sY, sM, 1));
-      const end = dayjs(new Date(eY, eM + 1, 0));
+      let end = dayjs(new Date(eY, eM + 1, 0));
+
+      if (addPadding) {
+        d = d.subtract(14, 'day');
+        end = end.add(14, 'day');
+      }
 
       while (d.isBefore(end) || d.isSame(end, 'day')) {
         const dayOfWeek = d.day();                            // Example: เป็นวันอังคาร = 2 
@@ -868,8 +903,8 @@
         return;
       }
 
-      const weeks = getWeeks(sY, sM, eY, eM, includeWeekend);
-      const days = getDays(sY, sM, eY, eM, includeWeekend);
+      const weeks = getWeeks(sY, sM, eY, eM, includeWeekend, extendPeriod);
+      const days = getDays(sY, sM, eY, eM, includeWeekend, extendPeriod);
       const units = viewMode === 'day' ? days : weeks;
       currentWeeks = weeks;
       currentUnits = units;
@@ -879,8 +914,10 @@
         return;
       }
 
-      const multiYear = sY !== eY;
-      const yearLabel = multiYear ? `${sY} – ${eY}` : `${sY}`;
+      const firstYear = units[0].year;
+      const lastYear = units[units.length - 1].year;
+      const multiYear = firstYear !== lastYear;
+      const yearLabel = multiYear ? `${firstYear} – ${lastYear}` : `${firstYear}`;
       // const projName = document.getElementById('projectName').value || 'Project';
 
       const groups = [];
